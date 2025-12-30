@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Jaini&family=Jaini+Purva&family=Momo+Trust+Display&display=swap');
+
+body{
+    background-image: url('../assest/images/bg_auth.png');
+    background-size:cover;
+    background-repeat: no-repeat;
+}
+
+
+
+main .login{
+    margin-top: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap:120px;
+}
+
+.login-form{
+
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: rgba(47,45,45,0.8);
+    width: 383px;
+    height: 549px;
+    border-radius: 20px;
+    border:1px solid #997708;
+    gap:50px;
+    
+
+}
+
+.enter{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap:10px;
+
+}
+
+.input-login{
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-left:20px;
+    padding-right:20px;
+    height:30px;
+    border-radius:10px;
+    font-family: "Jaini", system-ui;
+    font-weight: 200;
+    font-style: normal;
+    font-size:30px;
+
+}
+
+.login-form-text{
+    font-family: "Jaini", system-ui;
+    font-weight: 200;
+    font-style: normal;
+    color:white;
+    font-size:40px;
+
+}
+
+.button-login {
+
+
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    gap: 10px;               
+    
+    font-family: "Jaini", system-ui;
+    font-size: 30px; 
+    color: white;
+    
+    background-color: #3F1109;
+    border-radius: 10px; 
+    border: 1px solid #FF9D00;       
+    cursor: pointer;  
+    
+  
+    
+  
+    padding: 15px 30px; 
+    line-height: 1;
+    
+}
+
+.button-login img {
+    height: 30px;        
+    width: 30px;
+    object-fit: contain;
+    
+
+    transform: translateY(3px); 
+}
+
