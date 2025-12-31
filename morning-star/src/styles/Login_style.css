@@ -6,8 +6,16 @@ main .login {
     justify-content: center;
     align-items: center; 
     flex-direction: row;
-    gap: 80px; 
+    gap: 150px; 
     padding-bottom: 50px; 
+}
+.emblem
+{
+
+    
+    transform: scale(0.95);
+
+
 }
 
 .login-form {

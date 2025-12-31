@@ -11,7 +11,7 @@ const LoginPage = () => {
             
             <main>
                 <div className="login">
-                    <img src="/assets/images/Pass.svg" alt="Pass" />
+                    <img className = "emblem" src="/assets/images/Pass.svg" alt="Pass" />
                     
                     <div className="login-form">
                         <div className="enter">
