@@ -1,0 +1,37 @@
+footer{
+
+    margin-top: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    background-image: url('/assets/images/footer.svg') ;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #000000;
+    box-shadow: 0px -20px 40px 10px rgba(0, 0, 0, 0.9);
+    
+    position: relative; 
+    z-index: 5;
+
+}
+
+.footer-text{
+
+
+
+
+font-family: 'Jaini Purva';
+font-style: normal;
+font-weight: 400;
+font-size: 40px;
+line-height: 53px;
+
+color: #838383;
+
+
+
+}

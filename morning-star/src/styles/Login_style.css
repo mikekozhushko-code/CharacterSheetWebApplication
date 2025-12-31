@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Jaini&family=Jaini+Purva&family=Momo+Trust+Display&display=swap');
+
+main .login {
+    margin-top: 120px; 
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    flex-direction: row;
+    gap: 80px; 
+    padding-bottom: 50px; 
+}
+
+.login-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: rgba(47, 45, 45, 0.8);
+    border: 1px solid #997708;
+    border-radius: 20px;
+    width: 380px;
+    height: auto;
+    padding: 40px 30px; 
+    gap: 25px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+}
+
+.enter {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: flex-start;
+    flex-direction: column;
+    width: 100%; 
+    gap: 8px; 
+}
+
+.login-form-text {
+    font-family: "Jaini", system-ui;
+    font-weight: 200;
+    color: white;
+    font-size: 28px; 
+    margin-left: 5px; 
+}
+
+.input-login {
+    width: 100%; 
+    box-sizing: border-box; 
+    height: 45px; 
+    padding: 0 15px;
+    border-radius: 10px;
+    border: 2px solid transparent; 
+    outline: none; 
+    font-family: "Jaini", system-ui;
+    font-weight: 200;
+    font-size: 22px; 
+    transition: 0.3s;
+}
+
+.input-login:focus {
+    border-color: #FF9D00;
+    box-shadow: 0 0 10px rgba(153, 119, 8, 0.3);
+}
+
+.button-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%; 
+    padding: 12px 0; 
+    font-family: "Jaini", system-ui;
+    font-size: 26px; 
+    color: white;
+    background-color: #3F1109;
+    border-radius: 10px;
+    border: 1px solid #FF9D00;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    margin-top: 10px; 
+}
+
+.button-login:hover {
+    background-color: #5a1a10; 
+    transform: scale(1.02); 
+}
+
+.button-login img {
+    height: 24px;
+    width: 24px;
+    object-fit: contain;
+}
+
+.register-redirect {
+    margin-top: 5px;
+    text-align: center;
+    font-family: "Jaini", system-ui;
+    font-size: 20px;
+}

@@ -1,0 +1,97 @@
+.logo {
+    width: 50px;
+    height: 50px;
+    transform: translateY(3px) translateX(-9px);
+}
+
+.profile {
+    width: 50px;
+    height: 50px;
+    transform: translateY(3px) translateX(9px);
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.upper-header {
+    background-image: url('/assets/images/header_upper_bg.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 40px;
+    width: 836px;
+}
+
+.main-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    background-image: url('/assets/images/header_bg.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 1077px;
+    height: 68px;
+    z-index: 3;
+}
+
+.logo-link {
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+}
+
+.right-section {
+    
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 110px;
+}
+
+.nav-item {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    font-family: "Jaini", system-ui;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.candles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    flex-direction: row;
+    gap: 120px;
+    top: 10px;
+    z-index: 2;
+}
+
+.chains {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    flex-direction: row;
+    z-index: -1;
+    width: 844px;
+    height: 165px;
+}
