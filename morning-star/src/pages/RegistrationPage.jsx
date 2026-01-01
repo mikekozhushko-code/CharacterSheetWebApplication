@@ -12,7 +12,14 @@ const RegistrationPage = () => {
             
             <main>
                 <div className="login">
-                    <img className = "emblem" src="/assets/images/Pass.svg" alt="Pass" style={{transform:"translateY(-96px) scale(0.95)"}} />
+                    <img 
+                            className="emblem"  
+                            src="/assets/images/Pass.svg" 
+                            alt="Pass" 
+                            width="379"         
+                            height="569" 
+                            style={{transform:' translateY(-97.1px) scale(0.95)  '}}       
+                        />
                     
                     <div className="login-form">
                          <div className="enter">

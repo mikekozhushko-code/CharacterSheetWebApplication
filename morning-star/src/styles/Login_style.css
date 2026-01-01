@@ -9,14 +9,7 @@ main .login {
     gap: 150px; 
     padding-bottom: 50px; 
 }
-.emblem
-{
 
-    
-    transform: scale(0.95);
-
-
-}
 
 .login-form {
     display: flex;

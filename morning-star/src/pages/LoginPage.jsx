@@ -11,8 +11,15 @@ const LoginPage = () => {
             
             <main>
                 <div className="login">
-                    <img className = "emblem" src="/assets/images/Pass.svg" alt="Pass" />
-                    
+                    <img 
+                            className="emblem"  
+                            src="/assets/images/Pass.svg" 
+                            alt="Pass" 
+                            width="379"         
+                            height="569" 
+                            style={{transform:'scale(0.95)'}}       
+                        />
+                                            
                     <div className="login-form">
                         <div className="enter">
                             <label className="login-form-text" htmlFor="uname"><b>Login</b></label>
