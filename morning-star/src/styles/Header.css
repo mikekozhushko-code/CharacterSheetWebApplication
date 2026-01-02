@@ -1,3 +1,13 @@
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 30px;
+    position: relative; /* Важливо для z-index */
+    z-index: 20;
+}
+
 .logo {
     width: 50px;
     height: 50px;
@@ -8,14 +18,6 @@
     width: 50px;
     height: 50px;
     transform: translateY(3px) translateX(9px);
-}
-
-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 30px;
 }
 
 .upper-header {
@@ -49,7 +51,6 @@ header {
 }
 
 .right-section {
-    
     position: absolute;
     right: 40px;
     top: 50%;
@@ -72,6 +73,13 @@ nav {
     font-family: "Jaini", system-ui;
     font-weight: 400;
     font-style: normal;
+    transition: 0.2s;
+}
+
+.nav-item:hover {
+    transform: scale(1.1);
+    color: #ffc400;
+    transition: 0.2s;
 }
 
 .candles {
@@ -91,7 +99,9 @@ nav {
     align-items: center;
     position: absolute;
     flex-direction: row;
-    z-index: -1;
+    
+    z-index: -1; 
+    
     width: 844px;
     height: 165px;
 }
