@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/header.css';
 
-// 👇 1. Додаємо btnText та btnLink з дефолтними значеннями
+
 const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registration" }) => {
     return (
         <header className={isAuthPage ? 'header-auth' : ''}>
