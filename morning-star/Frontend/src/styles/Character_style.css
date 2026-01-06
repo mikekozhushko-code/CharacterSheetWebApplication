@@ -1,9 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Jaini&display=swap');
 
-/* --- ОСНОВНІ НАЛАШТУВАННЯ --- */
 * { box-sizing: border-box; }
 
-/* Скролбар (тонкий і стильний) */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0b0909; }
 ::-webkit-scrollbar-thumb { background: #5e3a03; border-radius: 4px; }
@@ -11,17 +9,16 @@
 
 html, body {
     margin: 0; padding: 0; width: 100%; min-height: 100vh;
-    background-color: #0b0909; /* Темний фон */
+    background-color: #0b0909; 
     color: #e0e0e0;
     font-family: "Jaini", system-ui;
-    overflow-x: hidden; /* Ховаємо горизонтальний скрол */
+    overflow-x: hidden;
 }
 
 #root { min-height: 100vh; display: flex; flex-direction: column; }
 
 .char-info-wrapper {
     display: flex; flex-direction: column; min-height: 100vh; width: 100%;
-    /* Текстура на фоні */
     background-image: 
         radial-gradient(circle at 50% 0%, rgba(69, 43, 2, 0.15) 0%, transparent 70%),
         linear-gradient(0deg, #050404 0%, #120c08 100%);
@@ -29,9 +26,8 @@ html, body {
 
 .char-info-wrapper > header, .char-info-wrapper > footer { flex: 0 0 auto; }
 
-/* --- 1. HUD ПАНЕЛЬ (Під хедером) --- */
 .hud-panel {
-    margin-top: 100px; /* Відступ від верхнього меню */
+    margin-top: 100px; 
     padding: 15px 40px;
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(18, 12, 8, 0.9);
@@ -89,16 +85,14 @@ html, body {
 .max-hp { font-size: 18px; color: #ffcdd2; font-weight: normal; }
 
 
-/* --- 2. ГОЛОВНА СІТКА (LAYOUT) --- */
 .dashboard-grid {
-    display: flex; /* Flex надійніший тут */
+    display: flex; 
     gap: 20px;
     padding: 20px 40px;
-    flex: 1; /* Розтягуємось на весь вільний простір */
-    min-height: 0; /* Важливо для скролу всередині */
+    flex: 1; 
+    min-height: 0;
 }
 
-/* --- ЛІВА КОЛОНКА (Атрибути) --- */
 .col-attributes {
     width: 120px;
     flex-shrink: 0;
@@ -119,9 +113,8 @@ html, body {
 .v-stat-save-tiny { font-size: 10px; color: #666; position: absolute; bottom: 2px; }
 
 
-/* --- ЦЕНТРАЛЬНА КОЛОНКА (Дія) --- */
 .col-action-deck {
-    flex: 1; /* Займає все вільне місце */
+    flex: 1; 
     display: flex; flex-direction: column; gap: 20px;
     min-width: 400px;
 }
@@ -151,7 +144,6 @@ html, body {
 }
 .deck-nav label:hover { color: #ccc; background: #1a1512; }
 
-/* Tab Logic */
 #deck-atk:checked ~ .deck-nav label[for="deck-atk"],
 #deck-spl:checked ~ .deck-nav label[for="deck-spl"],
 #deck-inv:checked ~ .deck-nav label[for="deck-inv"] {
@@ -164,7 +156,6 @@ html, body {
 #deck-spl:checked ~ .deck-content .pane-spl,
 #deck-inv:checked ~ .deck-content .pane-inv { display: block; }
 
-/* Fancy Table */
 .fancy-table { width: 100%; border-collapse: collapse; }
 .fancy-table th { text-align: left; color: #d32f2f; font-size: 20px; padding: 10px; border-bottom: 1px solid #5e3a03; }
 .fancy-table td { padding: 10px 5px; border-bottom: 1px solid rgba(94, 58, 3, 0.3); }
@@ -173,7 +164,6 @@ html, body {
 .table-input.center { text-align: center; }
 
 
-/* --- ПРАВА КОЛОНКА (Навички) --- */
 .col-skills-panel {
     width: 320px; flex-shrink: 0;
     background: rgba(18, 12, 8, 0.4); border-left: 1px solid #5e3a03;
@@ -207,10 +197,8 @@ html, body {
 .pv-val { color: #fff; font-weight: bold; background: #333; padding: 2px 8px; border-radius: 4px; font-size: 14px; }
 
 
-/* --- МОДАЛЬНІ ВІКНА (Калькулятори) --- */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 
-/* Calculator Theme */
 .modal-content.calculator-theme { background: #120c08; border: 2px solid #5e3a03; width: 420px; padding: 10px; box-shadow: 0 0 40px #000; font-family: "Jaini", system-ui; }
 .calc-header { display: flex; justify-content: flex-end; padding-bottom: 10px; }
 .close-btn { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; }
@@ -246,7 +234,6 @@ html, body {
 .calc-settings-input { background: transparent; border: none; border-bottom: 1px solid #555; color: #fff; font-size: 20px; font-family: "Jaini"; width: 100%; padding-bottom: 2px; }
 .calc-settings-input:focus { outline: none; border-color: #ffc400; }
 
-/* Coin Styles */
 .calc-coin-row { display: flex; gap: 15px; margin-bottom: 20px; padding: 0 10px; }
 .calc-coin-btn { flex: 1; background: #1a1512; border: 1px solid #333; color: #888; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; border-radius: 4px; font-family: "Jaini"; }
 .calc-coin-btn.active { background: #2a1a05; border-color: #ffc400; color: #fff; transform: translateY(-2px); }
@@ -256,7 +243,6 @@ html, body {
 .coin-sp.active { color: #bdbdbd; border-color: #bdbdbd; }
 .coin-cp.active { color: #ff8a65; border-color: #ff8a65; }
 
-/* Стандартна модалка (Stats) */
 .modal-content:not(.calculator-theme) { background: #1a120b; border: 2px solid #835F0A; width: 350px; padding: 20px; border-radius: 8px; box-shadow: 0 0 30px #000; }
 .modal-header { display: flex; justify-content: space-between; border-bottom: 1px solid #5e3a03; padding-bottom: 10px; margin-bottom: 20px; }
 .modal-body { display: flex; gap: 20px; margin-bottom: 20px; }
