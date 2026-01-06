@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; 
-import '../styles/login_style.css'; 
+import { Link } from 'react-router-dom';
+import '../styles/Login_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -8,18 +8,18 @@ const LoginPage = () => {
     return (
         <>
             <Header isAuthPage={true} />
-            
+
             <main>
                 <div className="login">
-                    <img 
-                            className="emblem"  
-                            src="/assets/images/Pass.svg" 
-                            alt="Pass" 
-                            width="379"         
-                            height="569" 
-                            style={{transform:'scale(0.95)'}}       
-                        />
-                                            
+                    <img
+                        className="emblem"
+                        src="/assets/images/Pass.svg"
+                        alt="Pass"
+                        width="379"
+                        height="569"
+                        style={{ transform: 'scale(0.95)' }}
+                    />
+
                     <div className="login-form">
                         <div className="enter">
                             <label className="login-form-text" htmlFor="uname"><b>Login</b></label>
@@ -30,11 +30,11 @@ const LoginPage = () => {
                             <label className="login-form-text" htmlFor="pass"><b>Password</b></label>
                             <input className="input-login" type="password" name="pass" required />
                         </div>
-                        
+
                         <button className="button-login" type="button">Sign in</button>
                         <button className="button-login" type="button">
-                            Sign in by Google 
-                            <img className="google-icon" src="/assets/icons/google.svg" style={{transform:'translateY(4px)',width:"30px",height:"30px"}} alt="Google" />
+                            Sign in by Google
+                            <img className="google-icon" src="/assets/icons/google.svg" style={{ transform: 'translateY(4px)', width: "30px", height: "30px" }} alt="Google" />
                         </button>
 
                         <div className="register-redirect">
@@ -47,7 +47,7 @@ const LoginPage = () => {
                     </div>
                 </div>
             </main>
-            <Footer/>
+            <Footer />
         </>
     );
 };

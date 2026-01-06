@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/header.css';
+import '../styles/Header.css';
 
 
 const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registration" }) => {
     return (
         <header className={isAuthPage ? 'header-auth' : ''}>
-            
+
             <div className="upper-header"></div>
             <img className="chains" src="/assets/images/chains.svg" alt="" />
             <div className="candles">
@@ -18,12 +18,12 @@ const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registrat
             </div>
 
             <div className="main-header">
-                
+
                 <Link to="/" className="logo-link">
-                    <img 
-                        className={isAuthPage ? "logo logo-auth" : "logo"} 
-                        src="/assets/icons/logo.svg" 
-                        alt="Logo" 
+                    <img
+                        className={isAuthPage ? "logo logo-auth" : "logo"}
+                        src="/assets/icons/logo.svg"
+                        alt="Logo"
                     />
                 </Link>
 
