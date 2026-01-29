@@ -15,9 +15,28 @@ const RegistrationPage = () => {
         password1: "",
         password2: "",
     });
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
-    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = async (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+
+        if (name === "username" || name === "email") {
+            try {
+                await api.get("/check-unique/", { params: { [name]: value } });
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            } catch (err) {
+                if (err.response && err.response.data && err.response.data[name]) {
+                    const errorMsg = Array.isArray(err.response.data[name])
+                        ? err.response.data[name].join(", ")
+                        : err.response.data[name];
+                    setErrors(prev => ({ ...prev, [name]: errorMsg }));
+                }
+            }
+        }
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,7 +44,7 @@ const RegistrationPage = () => {
             await api.post("/register/", form);
             navigate("/");
         } catch (error) {
-            alert(`Error: ${error.message}`);
+            console.log(error);
         }
     }
 
@@ -49,10 +68,12 @@ const RegistrationPage = () => {
                             <div className="enter">
                                 <label className="login-form-text" htmlFor="email"><b>Email</b></label>
                                 <input className="input-login" type="email" name="email" onChange={handleChange} required />
+                                {errors.username && <p className="error">{errors.username}</p>}
                             </div>
                             <div className="enter">
                                 <label className="login-form-text" htmlFor="username"><b>Login</b></label>
                                 <input className="input-login" type="text" name="username" onChange={handleChange} required />
+                                {errors.email && <p className="error">{errors.email}</p>}
                             </div>
 
                             <div className="enter">

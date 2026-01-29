@@ -5,25 +5,52 @@ import RegistrationPage from './pages/RegistrationPage';
 import Wardrobe from './pages/Wardrobe';
 import Wardrobe_c from './pages/Wardrobe_c';
 import Character_info from './pages/Character_info';
+import PrivateRoute from './components/PrivateRoute';
+import HomePage from './pages/HomePage.jsx'
+import Profile from './pages/Profile.jsx';
+import PublicRoute from './components/PublicRoute.jsx';
 
-const HomePage = () => <h1 style={{color: 'white', textAlign: 'center'}}>Welcome inside the Tavern!</h1>;
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
-      
       <Route path="/home" element={<HomePage />} />
-      
-      <Route path="/registration" element={<RegistrationPage />} />
 
+      <Route path="/" element={
+        <PublicRoute>
+          <LoginPage />
+        </PublicRoute>
+      } />
 
-      <Route path="/wardrobe" element={<Wardrobe />} />
+      <Route path="/registration" element={
+        <PublicRoute>
+          <RegistrationPage />
+        </PublicRoute>
+      } />
 
-      <Route path="/character" element={<Wardrobe_c />} />
+      <Route path="/wardrobe" element={
+        <PrivateRoute>
+          <Wardrobe />
+        </PrivateRoute>
+      } />
 
-      <Route path="/character-info" element={<Character_info />} />
+      <Route path="/character" element={
+        <PrivateRoute>
+          <Wardrobe_c />
+        </PrivateRoute>
+      } />
 
+      <Route path="/character-info" element={
+        <PrivateRoute>
+          <Character_info />
+        </PrivateRoute>
+      } />
+
+      <Route path="/profile" element={
+        <PrivateRoute>
+          <Profile />
+        </PrivateRoute>
+      } />
 
     </Routes>
   );

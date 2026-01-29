@@ -1,10 +1,31 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Login_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import api from "../Api.jsx";
 
 const LoginPage = () => {
+    const [form, setForm] = useState({ username: "", password: "" });
+    const navigate = useNavigate();
+
+    const handleChange = (e) =>
+        setForm({ ...form, [e.target.name]: e.target.value });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.post("/token/", form);
+            localStorage.setItem("token", res.data.access);
+            localStorage.setItem("refresh", res.data.refresh);
+            alert("Login correct");
+            navigate("/profile")
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        }
+    };
+
+
     return (
         <>
             <Header isAuthPage={true} />
@@ -21,17 +42,19 @@ const LoginPage = () => {
                     />
 
                     <div className="login-form">
-                        <div className="enter">
-                            <label className="login-form-text" htmlFor="uname"><b>Login</b></label>
-                            <input className="input-login" type="text" name="uname" required />
-                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="enter">
+                                <label className="login-form-text" htmlFor="username"><b>Login</b></label>
+                                <input className="input-login" type="text" name="username" onChange={handleChange} required />
+                            </div>
 
-                        <div className="enter">
-                            <label className="login-form-text" htmlFor="pass"><b>Password</b></label>
-                            <input className="input-login" type="password" name="pass" required />
-                        </div>
+                            <div className="enter">
+                                <label className="login-form-text" htmlFor="password"><b>Password</b></label>
+                                <input className="input-login" type="password" name="password" onChange={handleChange} required />
+                            </div>
 
-                        <button className="button-login" type="button">Sign in</button>
+                            <button className="button-login" type="submit">Sign in</button>
+                        </form>
                         <button className="button-login" type="button">
                             Sign in by Google
                             <img className="google-icon" src="/assets/icons/google.svg" style={{ transform: 'translateY(4px)', width: "30px", height: "30px" }} alt="Google" />
