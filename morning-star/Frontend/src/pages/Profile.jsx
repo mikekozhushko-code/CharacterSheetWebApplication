@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const Profile = () => {
-
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const handleLogout = () => {

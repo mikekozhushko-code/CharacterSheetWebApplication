@@ -6,7 +6,7 @@ import '../styles/Login_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-import api from "../Api.jsx";
+import { api } from "../Api.jsx";
 
 const RegistrationPage = () => {
     const [form, setForm] = useState({

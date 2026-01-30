@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Login_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import api from "../Api.jsx";
+import { api } from "../Api.jsx";
 
 const LoginPage = () => {
     const [form, setForm] = useState({ username: "", password: "" });
