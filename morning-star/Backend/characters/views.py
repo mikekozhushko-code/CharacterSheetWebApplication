@@ -22,3 +22,18 @@ class CharacterCreateView(generics.CreateAPIView):
             return super().create(request, *args, **kwargs)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class CharacterListView(generics.ListAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Character.objects.filter(owner=self.request.user)
+
+class CharacterDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Character.objects.filter(owner=self.request.user)
+
