@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Jaini&display=swap');
+
+/* --- WRAPPER --- */
+.news-page-wrapper {
+    display: flex; flex-direction: column; min-height: 100vh; width: 100%;
+    background-color: #0b0909;
+    color: #e0e0e0;
+    font-family: "Jaini", system-ui;
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(69, 43, 2, 0.15) 0%, transparent 70%),
+        linear-gradient(0deg, #050404 0%, #120c08 100%);
+}
+
+.news-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 120px auto 40px auto; /* Відступ від хедера */
+    padding: 0 20px;
+    flex: 1;
+}
+
+/* --- HEADER SECTION --- */
+.news-header-section {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #5e3a03;
+    padding-bottom: 20px;
+}
+
+.page-title {
+    font-size: 64px;
+    color: #ffc400;
+    margin: 0;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    letter-spacing: 2px;
+}
+
+.page-subtitle {
+    font-size: 20px;
+    color: #888;
+    margin-top: 5px;
+    font-family: sans-serif; /* Для кращої читабельності підзаголовка */
+}
+
+/* --- FEATURED CARD --- */
+.featured-news-card {
+    display: flex;
+    background: #1a120b;
+    border: 2px solid #5e3a03;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    height: 400px;
+}
+
+.featured-news-card:hover {
+    border-color: #ffc400;
+    transform: translateY(-2px);
+}
+
+.featured-image-box {
+    flex: 1.5;
+    background-color: #000;
+    overflow: hidden;
+    position: relative;
+}
+
+.featured-content {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 2px solid #5e3a03;
+    background: linear-gradient(135deg, #1a120b 0%, #25180b 100%);
+}
+
+.featured-title {
+    font-size: 42px;
+    color: #fff;
+    margin: 15px 0;
+    line-height: 1.1;
+}
+
+.featured-excerpt {
+    font-size: 18px;
+    color: #ccc;
+    margin-bottom: 25px;
+    font-family: sans-serif;
+    line-height: 1.6;
+}
+
+.read-more-btn {
+    align-self: flex-start;
+    background: #5e3a03;
+    color: #ffc400;
+    border: 1px solid #ffc400;
+    padding: 10px 25px;
+    font-size: 20px;
+    font-family: "Jaini";
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+
+.read-more-btn:hover {
+    background: #ffc400;
+    color: #000;
+    box-shadow: 0 0 15px #ffc400;
+}
+
+/* --- NEWS GRID --- */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.news-card {
+    background: #15100d;
+    border: 1px solid #5e3a03;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(255, 196, 0, 0.1);
+    border-color: #835F0A;
+}
+
+.card-image-box {
+    height: 200px;
+    background-color: #000;
+    border-bottom: 1px solid #5e3a03;
+}
+
+.card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-title {
+    font-size: 28px;
+    color: #e0e0e0;
+    margin: 10px 0;
+    transition: 0.2s;
+}
+
+.news-card:hover .card-title {
+    color: #ffc400;
+}
+
+.card-excerpt {
+    font-size: 16px;
+    color: #888;
+    font-family: sans-serif;
+    line-height: 1.5;
+    flex: 1;
+    margin-bottom: 15px;
+}
+
+.card-link {
+    color: #d32f2f;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.card-link:hover {
+    color: #ffc400;
+    letter-spacing: 1px;
+}
+
+/* --- COMMON ELEMENTS --- */
+.img-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #2a1a05; /* Колір, якщо картинки немає */
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.5s;
+}
+
+/* Ефект зуму картинки при наведенні */
+.news-card:hover .img-placeholder,
+.featured-news-card:hover .img-placeholder {
+    transform: scale(1.05);
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-family: sans-serif;
+}
+
+.news-date {
+    color: #666;
+}
+
+.news-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+/* Colors for tags */
+.tag-patch { background: rgba(98, 0, 234, 0.2); color: #b388ff; border: 1px solid #6200ea; }
+.tag-event { background: rgba(255, 196, 0, 0.2); color: #ffc400; border: 1px solid #ffc400; }
+.tag-lore { background: rgba(46, 125, 50, 0.2); color: #81c784; border: 1px solid #2e7d32; }
+.tag-system { background: rgba(211, 47, 47, 0.2); color: #ef5350; border: 1px solid #c62828; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .featured-news-card {
+        flex-direction: column;
+        height: auto;
+    }
+    .featured-image-box {
+        height: 250px;
+    }
+    .page-title {
+        font-size: 48px;
+    }
+    .featured-title {
+        font-size: 32px;
+    }
+}

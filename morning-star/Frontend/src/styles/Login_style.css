@@ -8,6 +8,7 @@ main .login {
     flex-direction: row;
     gap: 150px; 
     padding-bottom: 50px; 
+    margin-bottom: 200px;
 }
 
 

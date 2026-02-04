@@ -29,7 +29,7 @@ const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registrat
 
                 {!isAuthPage && (
                     <nav>
-                        <Link className="nav-item" to="/">Home</Link>
+                        <Link className="nav-item" to="/main">Home</Link>
                         <Link className="nav-item" to="/character">Character</Link>
                         <Link className="nav-item" to="/news">News</Link>
                         <Link className="nav-item" to="/about">About</Link>

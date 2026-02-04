@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Jaini&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: #0b0909;
+    color: #e0e0e0;
+    font-family: "Jaini", system-ui; 
+    overflow-x: hidden;
+}
+
+.epic-wrapper {
+    display: flex; flex-direction: column; min-height: 100vh;
+    background-color: #0b0909;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 0.5s ease-in-out;
+}
+
+.bg-tavern {
+    background-image: radial-gradient(circle at center, rgba(69, 43, 2, 0.4) 0%, #050404 100%), url('/assets/images/profile_background.jpg');
+}
+.bg-forest {
+    background-image: radial-gradient(circle at center, rgba(20, 50, 20, 0.4) 0%, #050404 100%), url('/assets/images/profile_background.jpg');
+}
+.bg-crypt {
+    background-image: radial-gradient(circle at center, rgba(40, 10, 60, 0.4) 0%, #050404 100%), url('/assets/images/profile_background.jpg');
+}
+.bg-citadel {
+    background-image: radial-gradient(circle at center, rgba(100, 80, 0, 0.3) 0%, #050404 100%), url('/assets/images/profile_background.jpg');
+}
+
+.epic-container {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 140px auto 60px auto;
+    padding: 0 20px;
+    display: flex; flex-direction: column; align-items: center;
+}
+
+.epic-profile-header {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    margin-bottom: 60px; position: relative; width: 100%;
+}
+
+.epic-avatar-container { position: relative; margin-bottom: 25px; }
+
+.epic-avatar-frame {
+    width: 160px; height: 160px; border-radius: 50%;
+    border: 4px solid #835F0A;
+    box-shadow: 0 0 30px rgba(255, 196, 0, 0.3), inset 0 0 20px #000;
+    padding: 5px; background: #0b0909;
+    overflow: hidden; position: relative;
+    display: flex; justify-content: center; align-items: center;
+}
+.epic-avatar-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.epic-avatar-frame::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); pointer-events: none;
+}
+.epic-avatar-placeholder { font-size: 64px; color: #5e3a03; font-family: "Cinzel", serif; font-weight: bold; }
+
+.epic-rank-banner {
+    position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(90deg, #3d2608, #835F0A, #3d2608);
+    color: #ffc400; padding: 5px 20px;
+    font-family: "Cinzel", serif; font-weight: bold; font-size: 14px;
+    border: 1px solid #ffc400; text-transform: uppercase; letter-spacing: 2px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8); white-space: nowrap; z-index: 2;
+}
+
+.epic-username {
+    font-size: 64px; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    margin: 15px 0 5px 0; font-family: "Jaini", system-ui; line-height: 1;
+}
+
+.epic-bio {
+    font-size: 20px; color: #aaa; font-style: italic; font-family: serif;
+    margin-bottom: 10px; max-width: 600px;
+}
+
+.epic-joined-date {
+    font-family: "Cinzel", serif; color: #5e3a03; font-size: 16px; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 2px;
+    border-top: 1px solid #5e3a03; border-bottom: 1px solid #5e3a03;
+    padding: 5px 20px; display: inline-block;
+}
+
+.epic-nav-bar {
+    display: flex; align-items: center; gap: 30px;
+    margin-bottom: 60px; width: 100%; justify-content: center;
+}
+.nav-line {
+    height: 2px; flex: 1; background: linear-gradient(90deg, transparent, #5e3a03, transparent);
+    max-width: 300px; opacity: 0.5;
+}
+.epic-nav-btn {
+    background: transparent; border: none; color: #888; font-size: 32px;
+    font-family: "Jaini"; cursor: pointer; padding: 5px 15px; transition: 0.3s; position: relative;
+}
+.epic-nav-btn:hover { color: #e0e0e0; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.epic-nav-btn.active { color: #ffc400; text-shadow: 0 0 15px rgba(255, 196, 0, 0.6); }
+.epic-nav-btn.active::after {
+    content: '♦'; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+    font-size: 16px; color: #ffc400;
+}
+
+.epic-content-area { width: 100%; }
+
+.epic-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+    gap: 50px; justify-content: center;
+}
+
+.epic-char-card {
+    width: 100%; height: 480px; position: relative; background: #15100d;
+    border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease;
+    overflow: hidden;
+}
+.epic-char-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 30px 60px rgba(0,0,0,0.9); z-index: 2; }
+
+.epic-card-bg {
+    width: 100%; height: 100%; background-size: cover; background-position: top center;
+    transition: transform 0.8s ease; filter: brightness(0.85); background-color: #2a1a05;
+}
+.epic-char-card:hover .epic-card-bg { transform: scale(1.1); filter: brightness(1); }
+
+.epic-card-frame {
+    position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;
+    border: 1px solid rgba(255, 196, 0, 0.2); border-radius: 8px;
+    pointer-events: none; z-index: 5; box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
+}
+
+.epic-card-content {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: space-between; z-index: 4;
+}
+
+.epic-card-header { padding: 25px; display: flex; justify-content: flex-end; }
+.epic-lvl {
+    width: 44px; height: 44px; background: #0b0909; border: 2px solid #ffc400;
+    color: #ffc400; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 20px; box-shadow: 0 0 15px rgba(255, 196, 0, 0.4); font-family: sans-serif;
+}
+
+.epic-card-footer {
+    background: linear-gradient(to top, #0b0909 30%, rgba(11,9,9,0.95) 85%, transparent 100%);
+    padding: 25px; padding-top: 80px; text-align: center; border-bottom: 4px solid #835F0A;
+}
+
+.epic-name { font-size: 36px; color: #fff; margin: 0; text-shadow: 0 2px 10px #000; font-family: "Jaini"; line-height: 1.1; }
+.epic-race { color: #ccc; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; font-family: "Cinzel", serif; margin: 8px 0 25px 0; font-weight: bold; opacity: 0.9; }
+
+.epic-actions {
+    display: flex; gap: 15px; justify-content: center;
+    opacity: 0; transform: translateY(20px); transition: 0.4s ease;
+}
+.epic-char-card:hover .epic-actions { opacity: 1; transform: translateY(0); }
+
+.epic-btn-play {
+    flex: 1; background: #835F0A; color: #fff; border: 1px solid #ffc400;
+    padding: 12px; font-family: "Cinzel", serif; font-weight: bold; font-size: 16px;
+    cursor: pointer; text-transform: uppercase; transition: 0.2s; letter-spacing: 1px;
+}
+.epic-btn-play:hover { background: #ffc400; color: #000; box-shadow: 0 0 20px rgba(255, 196, 0, 0.6); }
+
+.epic-btn-edit {
+    background: rgba(0,0,0,0.5); border: 1px solid #5e3a03; color: #aaa;
+    width: 50px; font-size: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
+}
+.epic-btn-edit:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+
+.new-slot { border: 2px dashed #5e3a03; background: rgba(255, 255, 255, 0.02); display: flex; justify-content: center; align-items: center; cursor: pointer; }
+.new-slot:hover { border-color: #ffc400; background: rgba(255, 196, 0, 0.05); box-shadow: 0 0 30px rgba(255, 196, 0, 0.15); }
+.new-slot-inner { text-align: center; }
+.epic-plus { font-size: 100px; color: #5e3a03; display: block; line-height: 0.8; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-bottom: 20px; }
+.epic-new-text { font-size: 28px; color: #888; font-family: "Jaini"; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+.new-slot:hover .epic-plus { color: #ffc400; transform: scale(1.2) rotate(90deg); text-shadow: 0 0 30px #ffc400; }
+.new-slot:hover .epic-new-text { color: #fff; text-shadow: 0 0 10px #fff; }
+
+.epic-settings-panel {
+    background: rgba(21, 16, 13, 0.95); border: 2px solid #5e3a03; border-radius: 12px;
+    padding: 40px; max-width: 800px; margin: 0 auto;
+    box-shadow: 0 0 30px rgba(94, 58, 3, 0.2); position: relative;
+}
+.settings-title { text-align: center; font-size: 36px; color: #ffc400; margin-bottom: 30px; font-family: "Jaini"; border-bottom: 1px solid #5e3a03; padding-bottom: 10px; }
+.settings-grid { display: flex; gap: 40px; margin-bottom: 30px; }
+
+.avatar-section { display: flex; flex-direction: column; align-items: center; gap: 15px; min-width: 150px; }
+.settings-avatar-preview { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #ffc400; overflow: hidden; box-shadow: 0 0 15px rgba(255, 196, 0, 0.3); }
+.settings-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.mb-20 { margin-bottom: 20px; }
+
+.epic-label-small { font-size: 14px; color: #888; text-transform: uppercase; margin-bottom: 5px; font-family: sans-serif; font-weight: bold; }
+.realm-selector { display: flex; gap: 10px; justify-content: center; }
+.realm-btn { width: 40px; height: 40px; background: #0b0909; border: 1px solid #5e3a03; border-radius: 6px; font-size: 20px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
+.realm-btn:hover { transform: scale(1.1); border-color: #ffc400; }
+.realm-btn.active { background: #5e3a03; border-color: #ffc400; box-shadow: 0 0 10px rgba(255, 196, 0, 0.4); }
+
+.form-section { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.epic-field-group { display: flex; flex-direction: column; gap: 5px; }
+.epic-field-group label { font-size: 16px; color: #888; text-transform: uppercase; font-family: sans-serif; font-weight: bold; letter-spacing: 1px; }
+
+.epic-input { background: #0b0909; border: 1px solid #5e3a03; color: #e0e0e0; padding: 12px; font-size: 18px; border-radius: 6px; font-family: "Jaini"; transition: 0.3s; width: 100%; }
+.epic-input:focus { outline: none; border-color: #ffc400; box-shadow: 0 0 10px rgba(255, 196, 0, 0.2); }
+.epic-input.disabled { background: rgba(0,0,0,0.5); color: #888; border-color: #333; cursor: not-allowed; letter-spacing: 1px; }
+.epic-textarea { resize: vertical; min-height: 100px; }
+
+.email-input-wrapper { display: flex; gap: 10px; align-items: center; }
+.epic-icon-btn { background: #2a1a05; border: 1px solid #5e3a03; color: #ffc400; width: 46px; height: 46px; border-radius: 6px; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+.epic-icon-btn:hover { background: #5e3a03; border-color: #ffc400; }
+
+.settings-footer { display: flex; align-items: center; border-top: 1px solid #5e3a03; padding-top: 20px; margin-top: 20px; }
+.spacer { flex: 1; }
+.epic-btn-outline { background: transparent; border: 1px solid #5e3a03; color: #ffc400; padding: 8px 20px; font-family: "Jaini"; font-size: 18px; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+.epic-btn-outline:hover { background: rgba(255, 196, 0, 0.1); border-color: #ffc400; }
+.epic-btn-save { background: #2e7d32; border: 1px solid #1b5e20; color: #fff; padding: 10px 30px; font-family: "Jaini"; font-size: 20px; cursor: pointer; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.epic-btn-save:hover { background: #388e3c; }
+
+.settings-danger-zone { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(211, 47, 47, 0.3); text-align: center; }
+.epic-btn-danger { background: rgba(211, 47, 47, 0.05); border: 1px solid #d32f2f; color: #ff5252; padding: 12px 40px; font-family: "Jaini"; font-size: 22px; cursor: pointer; border-radius: 4px; transition: 0.2s; letter-spacing: 2px; }
+.epic-btn-danger:hover { background: #d32f2f; color: #fff; box-shadow: 0 0 15px rgba(211, 47, 47, 0.5); }
+
+.epic-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.epic-modal-content { background: #1a120b; border: 2px solid #5e3a03; width: 400px; padding: 25px; border-radius: 8px; box-shadow: 0 0 40px #000; }
+.epic-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #5e3a03; padding-bottom: 15px; margin-bottom: 20px; }
+.epic-modal-header h3 { margin: 0; color: #ffc400; font-family: "Jaini"; font-size: 28px; }
+.epic-close-btn { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; }
+.epic-close-btn:hover { color: #fff; }
+.epic-modal-body { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+.epic-modal-footer { text-align: right; }
+.security-step { text-align: center; }
+.security-msg { color: #ccc; font-size: 18px; margin-bottom: 20px; line-height: 1.5; }
+.highlight-email { color: #ffc400; font-weight: bold; font-family: sans-serif; font-size: 16px; }
+.text-center { text-align: center; letter-spacing: 3px; font-size: 24px; }
+
+@media (max-width: 768px) {
+    .settings-grid { flex-direction: column; align-items: center; }
+    .settings-footer { flex-direction: column; gap: 15px; }
+    .spacer { display: none; }
+    .epic-btn-save, .epic-btn-outline { width: 100%; }
+}

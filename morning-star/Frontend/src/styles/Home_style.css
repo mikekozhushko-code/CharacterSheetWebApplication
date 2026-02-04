@@ -1,0 +1,274 @@
+@import url('https://fonts.googleapis.com/css2?family=Jaini&display=swap');
+
+/* --- GLOBAL RESET --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%; min-height: 100vh;
+    background-color: #0b0909;
+    color: #e0e0e0;
+    font-family: "Jaini", system-ui;
+    overflow-x: hidden;
+}
+
+.home-wrapper {
+    display: flex; flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.hero-section {
+    position: relative;
+    height: 100vh; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.hero-bg-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('/assets/images/tavern_bg.jpg'); 
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    transition: transform 0.1s ease-out; 
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, rgba(11, 9, 9, 0.4) 0%, #0b0909 90%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    max-width: 800px;
+    animation: fadeInUp 1.2s ease-out;
+}
+
+.hero-subtitle {
+    font-size: 24px;
+    color: #ffc400;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    opacity: 0.8;
+}
+
+.hero-title {
+    font-size: 96px;
+    line-height: 0.9;
+    color: #fff;
+    text-shadow: 0 5px 30px rgba(0,0,0,0.8);
+    margin-bottom: 20px;
+}
+
+.text-highlight {
+    color: transparent;
+    background: linear-gradient(180deg, #ffc400 20%, #835F0A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(255, 196, 0, 0.4));
+}
+
+.hero-description {
+    font-size: 22px;
+    color: #ccc;
+    max-width: 600px;
+    margin: 0 auto 40px auto;
+    font-family: sans-serif; 
+    line-height: 1.6;
+    text-shadow: 0 2px 4px #000;
+}
+
+.cta-button-main {
+    position: relative;
+    padding: 18px 50px;
+    font-size: 28px;
+    font-family: "Jaini", system-ui;
+    color: #fff;
+    background: transparent;
+    border: 2px solid #ffc400;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(255, 196, 0, 0.1);
+}
+
+.cta-button-main::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 196, 0, 0.4), transparent);
+    transition: 0.5s;
+}
+
+.cta-button-main:hover {
+    background: rgba(255, 196, 0, 0.1);
+    box-shadow: 0 0 40px rgba(255, 196, 0, 0.4);
+    transform: translateY(-3px);
+    text-shadow: 0 0 10px #ffc400;
+}
+
+.cta-button-main:hover::before {
+    left: 100%;
+}
+
+.btn-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0; height: 0;
+    background: radial-gradient(circle, rgba(255,196,0,0.5) 0%, transparent 70%);
+    border-radius: 50%;
+    transition: width 0.4s, height 0.4s;
+    z-index: -1;
+}
+
+.cta-button-main:active .btn-glow {
+    width: 300px; height: 300px;
+    opacity: 0;
+}
+
+.particles-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    background: #ffc400;
+    border-radius: 50%;
+    opacity: 0.6;
+    box-shadow: 0 0 10px #ffc400;
+    animation: floatUp linear infinite;
+}
+
+.p1 { width: 4px; height: 4px; left: 20%; bottom: -10px; animation-duration: 7s; animation-delay: 0s; }
+.p2 { width: 6px; height: 6px; left: 50%; bottom: -10px; animation-duration: 10s; animation-delay: 2s; }
+.p3 { width: 3px; height: 3px; left: 80%; bottom: -10px; animation-duration: 6s; animation-delay: 4s; }
+.p4 { width: 5px; height: 5px; left: 35%; bottom: -10px; animation-duration: 9s; animation-delay: 1s; }
+
+@keyframes floatUp {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.features-section {
+    position: relative;
+    z-index: 2;
+    padding: 80px 20px;
+    background: #120c08;
+    border-top: 2px solid #5e3a03;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-header h3 {
+    font-size: 48px;
+    color: #e0e0e0;
+    margin-bottom: 10px;
+}
+
+.header-decoration {
+    width: 100px; height: 3px;
+    background: #ffc400;
+    margin: 0 auto;
+    border-radius: 2px;
+    box-shadow: 0 0 10px #ffc400;
+}
+
+.features-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: linear-gradient(145deg, #1a1512 0%, #0e0a08 100%);
+    border: 1px solid #5e3a03;
+    padding: 40px 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+    transition: 0.3s;
+    position: relative;
+    top: 0;
+}
+
+.feature-card:hover {
+    top: -10px;
+    border-color: #ffc400;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.feature-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(255, 196, 0, 0.2);
+}
+
+.feature-card h4 {
+    font-size: 28px;
+    color: #ffc400;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    font-size: 16px;
+    color: #aaa;
+    font-family: sans-serif;
+    line-height: 1.5;
+}
+
+.quote-section {
+    padding: 100px 20px;
+    text-align: center;
+    background: #0b0909;
+    background-image: radial-gradient(circle at center, #1a120b 0%, #0b0909 70%);
+}
+
+blockquote {
+    font-size: 36px;
+    color: #fff;
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+    font-style: italic;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+cite {
+    font-size: 20px;
+    color: #ffc400;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 768px) {
+    .hero-title { font-size: 64px; }
+    .hero-description { font-size: 18px; }
+    .features-grid { flex-direction: column; align-items: center; }
+}
