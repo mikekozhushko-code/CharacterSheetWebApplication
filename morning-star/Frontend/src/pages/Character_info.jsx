@@ -150,6 +150,7 @@ const Character_info = () => {
     // Єбана залупа я тебе ненавиджу сука блятський git
     const [character, setCharacter] = useState([]);
     const [stats, setStats] = useState([]);
+    const [char, setChar] = useState(null);
     const { id } = useParams();
 
     useEffect(() => {
@@ -157,6 +158,7 @@ const Character_info = () => {
             .then(res => {
                 setCharacter(res.data);
                 setStats(res.data.stats);
+                setChar(res.data.char);
             })
             .catch(err => console.log(err));
     }, [id]);
@@ -166,21 +168,6 @@ const Character_info = () => {
     const [modals, setModals] = useState({ stat: false, hp: false, xp: false, money: false, generic: false });
     const [selectedStat, setSelectedStat] = useState(null);
     const [genericData, setGenericData] = useState({ title: '', key: '' });
-
-    const [char, setChar] = useState({
-        ac: 13, speed: 30, prof: '+2', wallet: { pp: 0, gp: 150, sp: 0, cp: 0 },
-        hpCurrent: 28, hpMax: 35, initiative: '+1', inspiration: 0, exhaustion: 0,
-        xp: 1250, maxXp: 3000, level: 3
-    });
-
-    // const [stats, setStats] = useState([
-    //     { id: 'str', name: 'Strength', val: 14, mod: '+2', save: '+2', skills: [{n:'Athletics', v:'+4', prof:true}] },
-    //     { id: 'dex', name: 'Dexterity', val: 12, mod: '+1', save: '+1', skills: [{n:'Acrobatics', v:'+1', prof:false}, {n:'Sleight of Hand', v:'+1', prof:false}, {n:'Stealth', v:'+1', prof:false}] },
-    //     { id: 'con', name: 'Constitution', val: 15, mod: '+2', save: '+4', skills: [] },
-    //     { id: 'int', name: 'Intelligence', val: 18, mod: '+4', save: '+6', skills: [{n:'Arcana', v:'+6', prof:true}, {n:'History', v:'+6', prof:true}, {n:'Investigation', v:'+4', prof:false}, {n:'Nature', v:'+4', prof:false}, {n:'Religion', v:'+4', prof:false}] },
-    //     { id: 'wis', name: 'Wisdom', val: 10, mod: '0', save: '0', skills: [{n:'Animal Handling', v:'0', prof:false}, {n:'Insight', v:'+2', prof:true}, {n:'Medicine', v:'0', prof:false}, {n:'Perception', v:'0', prof:false}, {n:'Survival', v:'0', prof:false}] },
-    //     { id: 'cha', name: 'Charisma', val: 8, mod: '-1', save: '-1', skills: [{n:'Deception', v:'-1', prof:false}, {n:'Intimidation', v:'-1', prof:false}, {n:'Performance', v:'-1', prof:false}, {n:'Persuasion', v:'-1', prof:false}] },
-    // ]);
 
     // Helpers
     const toggleModal = (name, state) => setModals(prev => ({ ...prev, [name]: state }));
@@ -197,7 +184,8 @@ const Character_info = () => {
         }));
     };
 
-    const xpPerc = Math.min((char.xp / char.maxXp) * 100, 100);
+    // const xpPerc = Math.min((char.xp / char.maxXp) * 100, 100);
+    const xpPerc = Math.min((100 / 100) * 100, 100);
 
     const VerticalStat = ({ stat }) => (
         <div className="v-stat-card" onClick={() => openStat(stat)}>
@@ -208,7 +196,7 @@ const Character_info = () => {
         </div>
     );
 
-    if (!character) return <p>Loading...</p>
+    if (!character || !char || !stats) return <p>Loading...</p>
 
     return (
         <div className="char-info-wrapper">
@@ -223,27 +211,27 @@ const Character_info = () => {
                         <div className="hud-sub">{character.race} • {character.class_type}</div>
                         <div className="hud-xp-bar" onClick={() => toggleModal('xp', true)}>
                             <div className="hud-xp-fill" style={{ width: `${xpPerc}%` }}></div>
-                            <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span>
+                            {/* <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span> */}
                         </div>
                     </div>
                 </div>
 
                 <div className="hud-stats">
                     <div className="hud-stat-hex" onClick={() => openGeneric('ac', 'Armor Class')}>
-                        <span className="hex-val">{character.char.ac}</span><span className="hex-lbl">AC</span>
+                        <span className="hex-val">{char.ac}</span><span className="hex-lbl">AC</span>
                     </div>
                     <div className="hud-stat-hex" onClick={() => openGeneric('speed', 'Speed')}>
-                        <span className="hex-val">{character.char.speed}</span><span className="hex-lbl">SPD</span>
+                        <span className="hex-val">{char.speed}</span><span className="hex-lbl">SPD</span>
                     </div>
                     <div className="hud-stat-hex" onClick={() => openGeneric('prof', 'Proficiency')}>
-                        <span className="hex-val">{character.char.prof}</span><span className="hex-lbl">PROF</span>
+                        <span className="hex-val">{char.prof}</span><span className="hex-lbl">PROF</span>
                     </div>
                     <div className="hud-stat-pill" onClick={() => toggleModal('money', true)}>
                         <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp}
                     </div>
                     <div className="hud-hp-block" onClick={() => toggleModal('hp', true)}>
                         <img src="/assets/icons/Hp.svg" className="hud-hp-icon" alt="HP" />
-                        <div className="hud-hp-vals">{character.char.hpCurrent} <span className="max-hp">/{character.char.hpMax}</span></div>
+                        <div className="hud-hp-vals">{char.hpCurrent} <span className="max-hp">/{char.hpMax}</span></div>
                     </div>
                 </div>
             </div>
@@ -261,15 +249,15 @@ const Character_info = () => {
                     <div className="combat-quick-row">
                         <div className="quick-stat" onClick={() => openGeneric('initiative', 'Init')}>
                             <span className="qs-label">INITIATIVE</span>
-                            <span className="qs-val">{character.char.initiative}</span>
+                            <span className="qs-val">{char.initiative}</span>
                         </div>
                         <div className="quick-stat" onClick={() => openGeneric('inspiration', 'Insp')}>
                             <span className="qs-label">INSPIRATION</span>
-                            <span className="qs-val">{character.char.inspiration}</span>
+                            <span className="qs-val">{char.inspiration}</span>
                         </div>
                         <div className="quick-stat" onClick={() => openGeneric('exhaustion', 'Exh')}>
                             <span className="qs-label">EXHAUSTION</span>
-                            <span className="qs-val">{character.char.exhaustion}</span>
+                            <span className="qs-val">{char.exhaustion}</span>
                         </div>
                     </div>
 
