@@ -8,15 +8,17 @@ class CharacterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
-        fields = [
-            "id", 
-            "name", 
-            "race", 
-            "class_type", 
-            "level", 
-            "stats",
-            "char",
-        ]
+        # fields = [
+        #     "id", 
+        #     "name", 
+        #     "race", 
+        #     "class_type", 
+        #     "level", 
+        #     "stats",
+        #     "char",
+        #     "str",
+        # ]
+        exclude = ["owner", "created_at", "update_at"]
 
     def get_modifier(self, value: int) -> int:
         return floor((value - 10) // 2)
