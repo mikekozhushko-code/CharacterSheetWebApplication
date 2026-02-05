@@ -35,14 +35,35 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     const [showSettings, setShowSettings] = useState(false);
     useEffect(() => { setLocalMax(maxHP); setInputVal(''); setShowSettings(false); }, [isOpen, maxHP]);
     if (!isOpen) return null;
+    // const applyChange = (type) => {
+    //     const val = parseInt(inputVal) || 0;
+    //     let newHP = currentHP;
+    //     if (type === 'heal') newHP = Math.min(currentHP + val, localMax);
+    //     if (type === 'dmg') newHP = Math.max(currentHP - val, 0);
+    //     if (type === 'temp') newHP = currentHP + val;
+
+    //     newHP = Math.max(0, Math.min(newHP, localMax));
+        
+    //     onSave(newHP, localMax); onClose();
+    // };
     const applyChange = (type) => {
         const val = parseInt(inputVal) || 0;
         let newHP = currentHP;
-        if (type === 'heal') newHP = Math.min(currentHP + val, localMax);
-        if (type === 'dmg') newHP = Math.max(currentHP - val, 0);
-        if (type === 'temp') newHP = currentHP + val;
-        onSave(newHP, localMax); onClose();
+
+        if (type === 'heal') {
+            newHP = currentHP + val;
+        }
+        if (type === 'dmg') {
+            newHP = currentHP - val;
+        }
+
+        // обмежуємо значення в межах [0, localMax]
+        newHP = Math.max(0, Math.min(newHP, localMax));
+        console.log(`LOCAL MAX: ${localMax}, NEWHP: ${newHP}`);
+        onSave(newHP, localMax);
+        onClose();
     };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content calculator-theme" onClick={e => e.stopPropagation()}>
@@ -138,7 +159,7 @@ const GenericEditModal = ({ isOpen, onClose, title, value, onSave }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" style={{ width: '300px' }} onClick={e => e.stopPropagation()}>
                 <div className="modal-header"><h3>{title}</h3><button className="close-btn" onClick={onClose}>×</button></div>
-                <div className="modal-body"><input className="modal-input" value={val} onChange={e => setVal(e.target.value)} /></div>
+                <div className="modal-body"><input className="modal-input" value={val ?? ""} onChange={e => setVal(e.target.value)} /></div>
                 <div className="modal-footer"><button className="save-btn" onClick={() => { onSave(val); onClose() }}>Save</button></div>
             </div>
         </div>
@@ -173,8 +194,45 @@ const Character_info = () => {
     const toggleModal = (name, state) => setModals(prev => ({ ...prev, [name]: state }));
     const openStat = (s) => { setSelectedStat(s); toggleModal('stat', true); };
     const openGeneric = (key, title) => { setGenericData({ key, title }); toggleModal('generic', true); };
-    const updateStat = (newStat) => setStats(prev => prev.map(s => s.id === newStat.id ? newStat : s));
-    const updateChar = (key, val) => setChar(prev => ({ ...prev, [key]: val }));
+    const updateStat = (newStat) => {
+        console.log(newStat);
+        const fieldMap = {
+           str: "str", 
+           dex: "dex", 
+           con: "con", 
+           int: "int", 
+           wis: "wis", 
+           chr: "chr", 
+        }
+
+        const payload = { 
+            [fieldMap[newStat.id]]: newStat.val, 
+            [`${fieldMap[newStat.id]}_save`]: newStat.save, 
+        };
+        console.log(payload);
+
+        authApi().patch(`/character-info/${id}/`, payload)
+            .then(res => {
+                setCharacter(res.data);
+                setStats(res.data.stats);
+                setChar(res.data.char);
+            })
+            .catch(err => console.error(`Update stats: ${err}`));
+    }
+
+    const updateChar = (key, val) => {
+        const payload = { [key]: val };
+
+        authApi().patch(`/character-info/${id}/`, payload)
+            .then(res => {
+            setCharacter(res.data);
+            setStats(res.data.stats);
+            setChar(res.data.char);
+            })
+            .catch(err => console.error(`Update char: ${err}`));
+    };
+
+
     const toggleSkill = (e, statId, idx) => {
         e.stopPropagation();
         setStats(prev => prev.map(s => {
@@ -227,7 +285,7 @@ const Character_info = () => {
                         <span className="hex-val">{char.prof}</span><span className="hex-lbl">PROF</span>
                     </div>
                     <div className="hud-stat-pill" onClick={() => toggleModal('money', true)}>
-                        <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp}
+                        {/* <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp} */}
                     </div>
                     <div className="hud-hp-block" onClick={() => toggleModal('hp', true)}>
                         <img src="/assets/icons/Hp.svg" className="hud-hp-icon" alt="HP" />
@@ -311,7 +369,16 @@ const Character_info = () => {
 
             {/* MODALS */}
             <StatModal isOpen={modals.stat} onClose={() => toggleModal('stat', false)} stat={selectedStat} onSave={updateStat} />
-            <HPCalculatorModal isOpen={modals.hp} onClose={() => toggleModal('hp', false)} currentHP={char.hpCurrent} maxHP={char.hpMax} onSave={(c, m) => updateChar('hpCurrent', c) || updateChar('hpMax', m)} />
+            <HPCalculatorModal isOpen={modals.hp} onClose={() => toggleModal('hp', false)} currentHP={char.hpCurrent} maxHP={char.hpMax} onSave={
+                (c, m) => { // 1. Локально оновлюємо state 
+                setChar(prev => ({ ...prev, hpCurrent: c, hpMax: m })); // 2. Відправляємо PATCH одним запитом 
+                authApi().patch(`/character-info/${id}/`, { hp_current: c, hp_max: m, }) 
+                    .then(res => { // 3. Синхронізуємо з бекендом 
+                    setCharacter(res.data); 
+                    setStats(res.data.stats); 
+                    setChar(res.data.char); }) 
+                .catch(err => console.error("Update HP error:", err)); }
+            } />
             <XPCalculatorModal isOpen={modals.xp} onClose={() => toggleModal('xp', false)} xp={char.xp} maxXp={char.maxXp} level={char.level} onSave={(x, mx, l) => updateChar('xp', x) || updateChar('maxXp', mx) || updateChar('level', l)} />
             <MoneyCalculatorModal isOpen={modals.money} onClose={() => toggleModal('money', false)} wallet={char.wallet} onSave={(w) => updateChar('wallet', w)} />
             <GenericEditModal isOpen={modals.generic} onClose={() => toggleModal('generic', false)} title={genericData.title} value={char[genericData.key]} onSave={(v) => updateChar(genericData.key, v)} />
