@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 import math
 
+def default_wallet():
+    return {"pp": 0, "gp": 0, "sp": 0, "cp": 0}
+
 # Create your models here.
 class Character(models.Model):
     # Base Info
@@ -50,7 +53,7 @@ class Character(models.Model):
     max_xp = models.PositiveIntegerField(default=1000)
 
     # Coins
-    wallet = models.JSONField(default=dict)
+    wallet = models.JSONField(default=default_wallet)
 
 
     created_at = models.DateTimeField(auto_now_add=True)

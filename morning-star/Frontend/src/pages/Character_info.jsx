@@ -35,17 +35,6 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     const [showSettings, setShowSettings] = useState(false);
     useEffect(() => { setLocalMax(maxHP); setInputVal(''); setShowSettings(false); }, [isOpen, maxHP]);
     if (!isOpen) return null;
-    // const applyChange = (type) => {
-    //     const val = parseInt(inputVal) || 0;
-    //     let newHP = currentHP;
-    //     if (type === 'heal') newHP = Math.min(currentHP + val, localMax);
-    //     if (type === 'dmg') newHP = Math.max(currentHP - val, 0);
-    //     if (type === 'temp') newHP = currentHP + val;
-
-    //     newHP = Math.max(0, Math.min(newHP, localMax));
-        
-    //     onSave(newHP, localMax); onClose();
-    // };
     const applyChange = (type) => {
         const val = parseInt(inputVal) || 0;
         let newHP = currentHP;
@@ -285,7 +274,7 @@ const Character_info = () => {
                         <span className="hex-val">{char.prof}</span><span className="hex-lbl">PROF</span>
                     </div>
                     <div className="hud-stat-pill" onClick={() => toggleModal('money', true)}>
-                        {/* <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp} */}
+                        <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp}
                     </div>
                     <div className="hud-hp-block" onClick={() => toggleModal('hp', true)}>
                         <img src="/assets/icons/Hp.svg" className="hud-hp-icon" alt="HP" />
