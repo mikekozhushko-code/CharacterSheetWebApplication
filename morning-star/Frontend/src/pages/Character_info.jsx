@@ -299,7 +299,8 @@ const Character_info = () => {
             {/* 1. HUD (Floating Panel) */}
             <div className="hud-panel">
                 <div className="hud-left">
-                    <div className="hud-avatar"><img src="/assets/images/Wizard.jpg" alt="Avatar" /></div>
+                    {/* <div className="hud-avatar"><img src="/assets/images/Wizard.jpg" alt="Avatar" /></div> */}
+                    <div className="hud-avatar"><img src={character.avatar ? character.avatar : "test"} alt="Avatar" /></div>
                     <div className="hud-info">
                         <h1>{character.name}</h1>
                         <div className="hud-sub">{character.race} • {character.class_type}</div>

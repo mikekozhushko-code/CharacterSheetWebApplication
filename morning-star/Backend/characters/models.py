@@ -13,6 +13,7 @@ class Character(models.Model):
         on_delete=models.CASCADE,
         related_name="character"
     )
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     race = models.CharField(max_length=50, blank=True, null=True)
     class_type = models.CharField(max_length=50, blank=True, null=True)
