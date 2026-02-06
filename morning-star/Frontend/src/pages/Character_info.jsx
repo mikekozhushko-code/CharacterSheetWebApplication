@@ -79,6 +79,29 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
 };
 
 const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
+    const xpThresholds = {
+        1: 0,
+        2: 300,
+        3: 900,
+        4: 2700,
+        5: 6500,
+        6: 14000,
+        7: 23000,
+        8: 34000,
+        9: 48000,
+        10: 64000,
+        11: 85000,
+        12: 100000,
+        13: 120000,
+        14: 140000,
+        15: 165000,
+        16: 195000,
+        17: 225000,
+        18: 265000,
+        19: 305000,
+        20: 355000
+    };
+
     const [inputVal, setInputVal] = useState('');
     const [localXP, setLocalXP] = useState(xp);
     const [localMaxXP, setLocalMaxXP] = useState(maxXp);
@@ -92,7 +115,21 @@ const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
         if (type === 'add') newTotal += val;
         setLocalXP(newTotal); setInputVal(''); onSave(newTotal, localMaxXP, localLevel);
     };
-    const handleLevelUp = () => { onSave(localXP, localMaxXP + 1000, localLevel + 1); onClose(); };
+    const handleLevelUp = () => {
+        const newLocalXp = localXP - localMaxXP;
+        const newLevel = localLevel + 1;
+        const newLocalMaxXp = xpThresholds[newLevel + 1];
+
+        setLocalXP(newLocalXp);
+        setLocalLevel(newLevel);
+        setLocalMaxXP(newLocalMaxXp);
+
+        console.log(`New Local XP: ${newLocalXp}, New Max XP: ${newLocalMaxXp}, New Level: ${newLevel}`);
+        onSave(newLocalXp, newLocalMaxXp, newLevel);
+        onClose();
+    };
+
+    console.log(`LocalXP: ${localXP}, LocalMaxXP: ${localMaxXP}, localLevel: ${localLevel}`);
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content calculator-theme" onClick={e => e.stopPropagation()}>
@@ -209,6 +246,17 @@ const Character_info = () => {
             .catch(err => console.error(`Update stats: ${err}`));
     }
 
+    const updateCharBulk = (data) => {
+        authApi().patch(`/character-info/${id}/`, data)
+            .then(res => {
+                setCharacter(res.data);
+                setStats(res.data.stats);
+                setChar(res.data.char);
+            })
+            .catch(err => console.error(err));
+    };
+
+
     const updateChar = (key, val) => {
         const payload = { [key]: val };
 
@@ -231,8 +279,7 @@ const Character_info = () => {
         }));
     };
 
-    // const xpPerc = Math.min((char.xp / char.maxXp) * 100, 100);
-    const xpPerc = Math.min((100 / 100) * 100, 100);
+    const xpPerc = Math.min((char?.xp || 0) / (char?.maxXp || 300) * 100, 100);
 
     const VerticalStat = ({ stat }) => (
         <div className="v-stat-card" onClick={() => openStat(stat)}>
@@ -258,7 +305,7 @@ const Character_info = () => {
                         <div className="hud-sub">{character.race} • {character.class_type}</div>
                         <div className="hud-xp-bar" onClick={() => toggleModal('xp', true)}>
                             <div className="hud-xp-fill" style={{ width: `${xpPerc}%` }}></div>
-                            {/* <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span> */}
+                            <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span>
                         </div>
                     </div>
                 </div>
@@ -368,7 +415,7 @@ const Character_info = () => {
                     setChar(res.data.char); }) 
                 .catch(err => console.error("Update HP error:", err)); }
             } />
-            <XPCalculatorModal isOpen={modals.xp} onClose={() => toggleModal('xp', false)} xp={char.xp} maxXp={char.maxXp} level={char.level} onSave={(x, mx, l) => updateChar('xp', x) || updateChar('maxXp', mx) || updateChar('level', l)} />
+            <XPCalculatorModal isOpen={modals.xp} onClose={() => toggleModal('xp', false)} xp={char.xp} maxXp={char.maxXp} level={char.level} onSave={(x, mx, l) => {updateCharBulk({"xp": x, "max_xp": mx, "level": l})}} />
             <MoneyCalculatorModal isOpen={modals.money} onClose={() => toggleModal('money', false)} wallet={char.wallet} onSave={(w) => updateChar('wallet', w)} />
             <GenericEditModal isOpen={modals.generic} onClose={() => toggleModal('generic', false)} title={genericData.title} value={char[genericData.key]} onSave={(v) => updateChar(genericData.key, v)} />
 

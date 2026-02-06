@@ -50,7 +50,7 @@ class Character(models.Model):
 
     # XP
     xp = models.PositiveIntegerField(default=0)
-    max_xp = models.PositiveIntegerField(default=1000)
+    max_xp = models.PositiveIntegerField(default=300)
 
     # Coins
     wallet = models.JSONField(default=default_wallet)
