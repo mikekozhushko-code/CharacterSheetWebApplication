@@ -5,6 +5,7 @@ from .models import Character
 class CharacterSerializer(serializers.ModelSerializer):
     stats = serializers.SerializerMethodField()
     char = serializers.SerializerMethodField()
+    skills = serializers.SerializerMethodField()
 
     class Meta:
         model = Character
@@ -22,6 +23,46 @@ class CharacterSerializer(serializers.ModelSerializer):
 
     def get_modifier(self, value: int) -> int:
         return floor((value - 10) // 2)
+
+    def get_skills(self, obj):
+        skills = [
+            {"id": "str", "n": "Athletics", "v": self.get_modifier(obj.str)},
+            
+            {"id": "dex", "n": "Acrobatics", "v": self.get_modifier(obj.dex)},
+            {"id": "dex", "n": "Sleight of Hand", "v": self.get_modifier(obj.dex)},
+            {"id": "dex", "n": "Stealth", "v": self.get_modifier(obj.dex)},
+            
+            {"id": "int", "n": "Arcana", "v": self.get_modifier(obj.int)},
+            {"id": "int", "n": "History", "v": self.get_modifier(obj.int)},
+            {"id": "int", "n": "Investigation", "v": self.get_modifier(obj.int)},
+            {"id": "int", "n": "Nature", "v": self.get_modifier(obj.int)},
+            {"id": "int", "n": "Religion", "v": self.get_modifier(obj.int)},
+            
+            {"id": "wis", "n": "Animal Handling", "v": self.get_modifier(obj.wis)},
+            {"id": "wis", "n": "Insight", "v": self.get_modifier(obj.wis)},
+            {"id": "wis", "n": "Medicine", "v": self.get_modifier(obj.wis)},
+            {"id": "wis", "n": "Perception", "v": self.get_modifier(obj.wis)},
+            {"id": "wis", "n": "Survival", "v": self.get_modifier(obj.wis)},
+            
+            {"id": "chr", "n": "Deception", "v": self.get_modifier(obj.chr)},
+            {"id": "chr", "n": "Intimidation", "v": self.get_modifier(obj.chr)},
+            {"id": "chr", "n": "Performance", "v": self.get_modifier(obj.chr)},
+            {"id": "chr", "n": "Persuasion", "v": self.get_modifier(obj.chr)},
+        ]
+
+        result = []
+
+        for skill in skills:
+            proof = skill["n"] in obj.proficiencies
+            value = skill["v"] + (obj.prof if proof else 0)
+            result.append({
+                "id": skill["id"],
+                "n": skill["n"],
+                "v": value,
+                "proof": proof
+            })
+
+        return result
 
     def get_stats(self, obj):
         return [

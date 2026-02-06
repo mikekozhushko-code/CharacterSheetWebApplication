@@ -39,6 +39,7 @@ class Character(models.Model):
     ac = models.IntegerField(default=10)
     speed = models.IntegerField(default=30)
     prof = models.IntegerField(default=2)
+    proficiencies = models.JSONField(default=list)
 
     # HP
     hp_current = models.PositiveIntegerField(default=10)
