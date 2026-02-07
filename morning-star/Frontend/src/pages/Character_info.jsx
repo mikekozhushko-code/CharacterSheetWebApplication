@@ -197,19 +197,20 @@ const Character_info = () => {
     // Єбана залупа я тебе ненавиджу сука блятський git
     const [character, setCharacter] = useState([]);
     const [stats, setStats] = useState([]);
+    const [skills, setSkills] = useState([]);
     const [char, setChar] = useState(null);
     const { id } = useParams();
 
     useEffect(() => {
-        authApi().get(`character-info/${id}/`)
+        authApi().get(`/character-info/${id}/`)
             .then(res => {
                 setCharacter(res.data);
                 setStats(res.data.stats);
                 setChar(res.data.char);
+                setSkills(res.data.skills);
             })
             .catch(err => console.log(err));
     }, [id]);
-
 
     // States
     const [modals, setModals] = useState({ stat: false, hp: false, xp: false, money: false, generic: false });
@@ -242,6 +243,7 @@ const Character_info = () => {
                 setCharacter(res.data);
                 setStats(res.data.stats);
                 setChar(res.data.char);
+                setSkills(res.data.skills);
             })
             .catch(err => console.error(`Update stats: ${err}`));
     }
@@ -265,18 +267,38 @@ const Character_info = () => {
             setCharacter(res.data);
             setStats(res.data.stats);
             setChar(res.data.char);
+            setSkills(res.data.skills);
             })
             .catch(err => console.error(`Update char: ${err}`));
     };
 
-
-    const toggleSkill = (e, statId, idx) => {
+    const toggleSkill = async (e, statId, idx) => {
         e.stopPropagation();
-        setStats(prev => prev.map(s => {
-            if (s.id !== statId) return s;
-            const skills = [...s.skills]; skills[idx].prof = !skills[idx].prof;
-            return { ...s, skills };
-        }));
+
+        const skill = skills[idx];
+        const isProficient = character.proficiencies.includes(skill.n);
+
+        let updatedProficiencies;
+        if (isProficient) {
+            // якщо вже є — видаляємо
+            updatedProficiencies = character.proficiencies.filter(n => n !== skill.n);
+        } else {
+            // якщо немає — додаємо
+            updatedProficiencies = [...character.proficiencies, skill.n];
+        }
+
+        try {
+            const res = await authApi().patch(`/character-info/${id}/`, {
+            proficiencies: updatedProficiencies
+            });
+
+            // оновлюємо персонажа і skills з відповіді сервера
+            setCharacter(res.data);
+            setSkills(res.data.skills);
+            console.log(skills);
+        } catch (err) {
+            console.error("Помилка при PATCH:", err);
+        }
     };
 
     const xpPerc = Math.min((char?.xp || 0) / (char?.maxXp || 300) * 100, 100);
@@ -289,6 +311,19 @@ const Character_info = () => {
             <div className="v-stat-save-tiny">SV {stat.save}</div>
         </div>
     );
+
+    const SkillPanel = ({ skill, i }) => {
+        return (
+            <div className="skill-strip" onClick={(e) => toggleSkill(e, skill.id, i)}>
+                <div className={`skill-indicator ${skill.proof ? 'proficient' : ''}`}></div>
+                    <span className="skill-name">
+                        {skill.n} <span className="skill-stat-tag">({skill.id.toUpperCase()})</span>
+                    </span>
+                <span className="skill-val">{skill.v}</span>
+            </div>
+        );
+    };
+
 
     if (!character || !char || !stats) return <p>Loading...</p>
 
@@ -386,15 +421,8 @@ const Character_info = () => {
                 {/* RIGHT: SKILLS */}
                 <div className="col-skills-panel">
                     <div className="panel-header">Skills</div>
-                    <div className="skills-scroll-container">
-                        {/* {stats.map(stat => stat.skills.map((skill, i) => ( */}
-                        {/*     <div className="skill-strip" key={`${stat.id}-${i}`} onClick={(e) => toggleSkill(e, stat.id, i)}> */}
-                        {/*         <div className={`skill-indicator ${skill.prof ? 'proficient' : ''}`}></div> */}
-                        {/*         <span className="skill-name">{skill.n} <span className="skill-stat-tag">({stat.id.toUpperCase()})</span></span> */}
-                        {/*         <span className="skill-val">{skill.v}</span> */}
-                        {/*     </div> */}
-                        {/* )))} */}
-                    </div>
+                        {skills.map((s, i) => (<SkillPanel key={`${s.id}-${i}`} skill={s} i={i} />))}
+
                     <div className="passives-box">
                         <div className="passive-line"><span className="pv-val">12</span> Perception</div>
                         <div className="passive-line"><span className="pv-val">14</span> Investigation</div>
