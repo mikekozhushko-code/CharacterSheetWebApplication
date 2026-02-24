@@ -20,7 +20,7 @@
 
 main{
 
-    margin-top: 120px;
+    margin-top: 50px;
 
     display: flex;
     flex-direction: column;
@@ -43,10 +43,11 @@ main{
     display: flex;
     justify-content: start;
     align-items: start;
-    width: 1378px;
-    height: 562px;
+    width: 1168px;
+    height: 476px;
     background-image: url('/assets/images/Characters.svg');
-    margin-bottom: 300px;
+    background-size: cover;
+    margin-bottom: 150px;
 
 
 

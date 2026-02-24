@@ -19,28 +19,26 @@ const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registrat
 
             <div className="main-header">
 
-                <Link to="/" className="logo-link">
-                    <img
-                        className={isAuthPage ? "logo logo-auth" : "logo"}
-                        src="/assets/icons/logo.svg"
-                        alt="Logo"
-                    />
-                </Link>
+                
 
                 {!isAuthPage && (
                     <nav>
+                        <Link to="/" className="logo-link">
+                        <img
+                            className={isAuthPage ? "logo logo-auth" : "logo"}
+                            src="/assets/icons/logo.svg"
+                            alt="Logo"
+                        />
+                        </Link>
                         <Link className="nav-item" to="/main">Home</Link>
                         <Link className="nav-item" to="/character">Character</Link>
                         <Link className="nav-item" to="/news">News</Link>
                         <Link className="nav-item" to="/about">About</Link>
                         <Link className="nav-item" to="/language">Language</Link>
-                    </nav>
-                )}
-
-                <div className="right-section">
+                        <div className="right-section">
                     {!isAuthPage ? (
                         <Link className="profile" to="/profile">
-                            <img src="/assets/icons/profile.svg" alt="Profile" />
+                            <img class = "profile-pic" src="/assets/icons/profile.svg" alt="Profile" />
                         </Link>
                     ) : (
                         <Link className="nav-item" to={btnLink} style={{ textDecoration: 'none' }}>
@@ -48,6 +46,10 @@ const Header = ({ isAuthPage = false, btnText = "Sign Up", btnLink = "/registrat
                         </Link>
                     )}
                 </div>
+                    </nav>
+                )}
+
+                
 
             </div>
         </header>

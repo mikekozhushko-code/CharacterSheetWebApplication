@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Character_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import spellsData from '../data/spells.json'; 
 
+// ... далі йде код іконок ...
 // --- ICONS ---
 const IconSword = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>;
 const IconClock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
@@ -42,8 +43,7 @@ const getSpellStats = (spell) => {
     return { value: statText, className: typeClass };
 };
 
-// --- MODALS (RESTORED) ---
-
+// --- MODALS ---
 const StatModal = ({ isOpen, onClose, stat, onSave }) => {
     const [localVal, setLocalVal] = useState(stat?.val || 10);
     const [localSave, setLocalSave] = useState(stat?.save || 0);
@@ -65,7 +65,6 @@ const StatModal = ({ isOpen, onClose, stat, onSave }) => {
     );
 };
 
-// 🔥 Restored HP Calculator
 const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     const [inputVal, setInputVal] = useState('');
     const [localMax, setLocalMax] = useState(maxHP);
@@ -95,7 +94,6 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     );
 };
 
-// 🔥 Restored XP Calculator
 const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => { 
     const [inputVal, setInputVal] = useState('');
     const [localXP, setLocalXP] = useState(xp);
@@ -125,7 +123,6 @@ const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
     );
 };
 
-// 🔥 Restored Money Calculator
 const MoneyCalculatorModal = ({ isOpen, onClose, wallet, onSave }) => { 
     const [inputVal, setInputVal] = useState('');
     const [coin, setCoin] = useState('gp');
@@ -226,6 +223,8 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
 
 /* --- MAIN COMPONENT --- */
 const Character_info = () => {
+    const fileInputRef = useRef(null);
+    
     // UI States
     const [modals, setModals] = useState({ stat: false, hp: false, xp: false, money: false, generic: false, spells: false });
     const [selectedStat, setSelectedStat] = useState(null);
@@ -235,7 +234,16 @@ const Character_info = () => {
     const [expandedSpells, setExpandedSpells] = useState({});
 
     // DATA
-    const [char, setChar] = useState({ ac: 13, speed: 30, prof: '+2', wallet: { pp:0, gp:150, sp:0, cp:0 }, hpCurrent: 28, hpMax: 35, initiativeBonus: 0, inspiration: 0, exhaustion: 0, xp: 1250, maxXp: 3000, level: 3 });
+    const [char, setChar] = useState({ 
+        name: "DreadNote", 
+        race: "Tiefling",    
+        charClass: "Wizard", 
+        avatar: "/assets/images/Wizard.jpg", 
+        ac: 13, speed: 30, prof: '+2', wallet: { pp:0, gp:150, sp:0, cp:0 }, 
+        hpCurrent: 28, hpMax: 35, initiativeBonus: 0, inspiration: 0, exhaustion: 0, 
+        xp: 1250, maxXp: 3000, level: 3 
+    });
+
     const [stats, setStats] = useState([{ id: 'str', name: 'Strength', val: 14, mod: '+2', save: '+2', skills: [{n:'Athletics', v:'+4', prof:true}] }, { id: 'dex', name: 'Dexterity', val: 12, mod: '+1', save: '+1', skills: [{n:'Acrobatics', v:'+1', prof:false}, {n:'Sleight', v:'+1', prof:false}, {n:'Stealth', v:'+1', prof:false}] }, { id: 'con', name: 'Constitution', val: 15, mod: '+2', save: '+4', skills: [] }, { id: 'int', name: 'Intelligence', val: 18, mod: '+4', save: '+6', skills: [{n:'Arcana', v:'+6', prof:true}, {n:'History', v:'+6', prof:true}, {n:'Invest', v:'+4', prof:false}] }, { id: 'wis', name: 'Wisdom', val: 10, mod: '0', save: '0', skills: [{n:'Insight', v:'+2', prof:true}, {n:'Medicine', v:'0', prof:false}, {n:'Percep', v:'0', prof:false}] }, { id: 'cha', name: 'Charisma', val: 8, mod: '-1', save: '-1', skills: [{n:'Deception', v:'-1', prof:false}, {n:'Persuade', v:'-1', prof:false}] }]);
     const [attacks, setAttacks] = useState([{ id: 1, name: "Dagger", bonus: "+5", damage: "1d4 + 3 Piercing" }]);
     const [mySpells, setMySpells] = useState([]);
@@ -266,7 +274,16 @@ const Character_info = () => {
     const updateStat = (newStat) => setStats(prev => prev.map(s => s.id === newStat.id ? newStat : s));
     const updateChar = (key, val) => setChar(prev => ({...prev, [key]: val}));
     const toggleSkill = (e, statId, idx) => { e.stopPropagation(); setStats(prev => prev.map(s => { if(s.id!==statId) return s; const skills = [...s.skills]; skills[idx].prof = !skills[idx].prof; return {...s, skills}; })); };
-    
+    const handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                updateChar('avatar', reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     const addAttack = () => setAttacks([...attacks, { id: Date.now(), name: "New Attack", bonus: "+0", damage: "1d6 Type" }]);
     const updateAttack = (id, field, value) => setAttacks(attacks.map(att => att.id === id ? { ...att, [field]: value } : att));
     const removeAttack = (id) => setAttacks(attacks.filter(att => att.id !== id));
@@ -296,7 +313,42 @@ const Character_info = () => {
             <Header/>
             {/* HUD */}
             <div className="hud-panel">
-                <div className="hud-left"><div className="hud-avatar"><img src="/assets/images/Wizard.jpg" alt="Avatar"/></div><div className="hud-info"><h1>DreadNote</h1><div className="hud-sub">Tiefling • Wizard</div><div className="hud-xp-bar" onClick={()=>toggleModal('xp', true)}><div className="hud-xp-fill" style={{width: `${xpPerc}%`}}></div><span className="hud-xp-text">LVL {char.level} • {char.xp} / {char.maxXp}</span></div></div></div>
+                <div className="hud-left">
+                    
+                    <div className="hud-avatar" onClick={() => fileInputRef.current.click()}>
+                        
+                        {/* Прихований input для вибору файлу з комп'ютера */}
+                        <input 
+                            type="file" 
+                            accept="image/*" 
+                            ref={fileInputRef} 
+                            style={{ display: 'none' }} 
+                            onChange={handleImageUpload} 
+                        />
+                        
+                        <img 
+                            src={char.avatar} 
+                            alt="Avatar" 
+                            onError={(e) => e.target.src = "https://via.placeholder.com/150/15100d/ffc400?text=No+Image"} 
+                        />
+                        <div className="avatar-edit-overlay">✎</div>
+                    </div>
+
+                    <div className="hud-info">
+                        {/* ✅ ВІДОКРЕМЛЕНІ РАСА І КЛАС */}
+                        <h1 className="editable-text" onClick={() => openGeneric('name', 'Character Name')}>{char.name} <span className="edit-icon">✎</span></h1>
+                        <div className="hud-sub">
+                            <span className="editable-text" onClick={() => openGeneric('race', 'Race')}>
+                                {char.race} <span className="edit-icon">✎</span>
+                            </span>
+                            <span className="hud-sub-separator">•</span>
+                            <span className="editable-text" onClick={() => openGeneric('charClass', 'Class')}>
+                                {char.charClass} <span className="edit-icon">✎</span>
+                            </span>
+                        </div>
+                        <div className="hud-xp-bar" onClick={()=>toggleModal('xp', true)}><div className="hud-xp-fill" style={{width: `${xpPerc}%`}}></div><span className="hud-xp-text">LVL {char.level} • {char.xp} / {char.maxXp}</span></div>
+                    </div>
+                </div>
                 <div className="hud-stats"><div className="hud-stat-hex" onClick={()=>openGeneric('ac','Armor Class')}><span className="hex-val">{char.ac}</span><span className="hex-lbl">AC</span></div><div className="hud-stat-hex" onClick={()=>openGeneric('speed','Speed')}><span className="hex-val">{char.speed}</span><span className="hex-lbl">SPD</span></div><div className="hud-stat-hex" onClick={()=>openGeneric('prof','Proficiency')}><span className="hex-val">{char.prof}</span><span className="hex-lbl">PROF</span></div><div className="hud-stat-pill" onClick={()=>toggleModal('money', true)}><span style={{color:'#ffc107'}}>$</span> {char.wallet.gp}</div><div className="hud-hp-block" onClick={()=>toggleModal('hp', true)}><img src="/assets/icons/Hp.svg" className="hud-hp-icon" alt="HP"/><div className="hud-hp-vals">{char.hpCurrent} <span className="max-hp">/{char.hpMax}</span></div></div></div>
             </div>
 
@@ -314,13 +366,13 @@ const Character_info = () => {
                         <div className="deck-nav"><label className={activeTab === 'attacks' ? 'active' : ''} onClick={() => setActiveTab('attacks')}>Attacks</label><label className={activeTab === 'spells' ? 'active' : ''} onClick={() => setActiveTab('spells')}>Spells</label><label className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>Items</label><label className={activeTab === 'notes' ? 'active' : ''} onClick={() => setActiveTab('notes')}>Notes</label><label className={activeTab === 'appearance' ? 'active' : ''} onClick={() => setActiveTab('appearance')}>Look</label><label className={activeTab === 'goals' ? 'active' : ''} onClick={() => setActiveTab('goals')}>Goals</label></div>
                         
                         <div className="deck-content">
-                            {/* ATTACKS (Dark Theme) */}
+                            {/* ATTACKS */}
                             {activeTab === 'attacks' && ( <div className="deck-pane"><div className="attack-header-labels"><span className="lbl-name"><IconSword/> ATTACK</span><span className="lbl-bonus"><IconTarget/> BONUS</span><span className="lbl-dmg"><IconSkull/> DAMAGE</span><div className="lbl-actions"><button className="small-add-btn" onClick={addAttack}>+</button></div></div><div className="attacks-list-clean">{attacks.map(att => (<div key={att.id} className="attack-row-clean"><input type="text" className="clean-input name" value={att.name} onChange={(e) => updateAttack(att.id, 'name', e.target.value)} /><div className="bonus-box"><input type="text" className="clean-input bonus" value={att.bonus} onChange={(e) => updateAttack(att.id, 'bonus', e.target.value)} /></div><div className="damage-box"><input type="text" className="clean-input damage" value={att.damage} onChange={(e) => updateAttack(att.id, 'damage', e.target.value)} /></div><button className="clean-delete-btn" onClick={() => removeAttack(att.id)}>−</button></div>))}</div><div className="sheet-section"><div className="sheet-label">ATTACKS & SPELLCASTING</div><textarea className="sheet-textarea" value={attackNotes} onChange={(e) => setAttackNotes(e.target.value)} /></div><div className="sheet-section"><div className="sheet-label">FEATURES & TRAITS</div><textarea className="sheet-textarea" value={featuresNotes} onChange={(e) => setFeaturesNotes(e.target.value)} /></div></div>)}
                             
-                            {/* SPELLS (Gold Theme) */}
+                            {/* SPELLS */}
                             {activeTab === 'spells' && (<div className="deck-pane spells-container"><div className="spells-col-header"><span className="col-h-name">SPELL</span><span className="col-h-icon"><IconSword/></span><span className="col-h-icon"><IconClock/></span><span className="col-h-icon"><IconTarget/></span></div>{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(lvl => renderSpellTier(lvl))}<button className="settings-btn-long mt-20" onClick={() => openSpellModalForLevel('All')}>Open Grimoire (All Spells)</button></div>)}
                             
-                            {/* INVENTORY (Dark Theme) */}
+                            {/* INVENTORY */}
                             {activeTab === 'inventory' && (
                                 <div className="deck-pane">
                                     <div className="inv-top-row">

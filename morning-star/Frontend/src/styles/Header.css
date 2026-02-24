@@ -9,23 +9,26 @@ header {
 }
 
 .logo {
-    width: 50px;
-    height: 50px;
-    transform: translateY(3px) translateX(-9px);
+    width: 30px;
+    height: 30px;
+    transform: translateY(2px) translateX(-35px);
 }
 
 .profile {
     width: 50px;
     height: 50px;
-    transform: translateY(3px) translateX(9px);
+    transform: translateY(12px) translateX(35px);
+}
+.profile-pic{
+    width: 24px;
 }
 
 .upper-header {
     background-image: url('/assets/images/header_upper_bg.svg');
     background-size: cover;
     background-repeat: no-repeat;
-    height: 40px;
-    width: 836px;
+    height: 20px;
+    width: 436px;
 }
 
 .main-header {
@@ -37,8 +40,8 @@ header {
     background-image: url('/assets/images/header_bg.svg');
     background-size: cover;
     background-repeat: no-repeat;
-    width: 1077px;
-    height: 68px;
+    width: 600px;
+    height: 38px;
     z-index: 3;
 }
 
@@ -63,17 +66,18 @@ nav {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 110px;
+    gap: 60px;
 }
 
 .nav-item {
     color: white;
     text-decoration: none;
-    font-size: 24px;
+    font-size: 16px;
     font-family: "Jaini", system-ui;
     font-weight: 400;
     font-style: normal;
     transition: 0.2s;
+    
 }
 
 .nav-item:hover {
@@ -89,8 +93,13 @@ nav {
     position: absolute;
     flex-direction: row;
     gap: 120px;
-    top: 10px;
+    top: 20px;
     z-index: 2;
+}
+.candle{
+
+    width: 20px;
+
 }
 
 .chains {
@@ -101,7 +110,7 @@ nav {
     flex-direction: row;
     
     z-index: -1; 
-    
-    width: 844px;
-    height: 165px;
+    top:-9px;
+    width: 544px;
+    height: 90px;
 }

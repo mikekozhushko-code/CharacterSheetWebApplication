@@ -1604,3 +1604,78 @@ html, body {
 .tier-add-btn:hover { border-color: #ffc400; color: #ffc400; }
 .tier-list-container { display: flex; flex-direction: column; gap: 2px; }
 .tier-empty { font-style: italic; color: #555; font-size: 14px; padding: 10px; }
+
+
+.hud-sub { 
+    color: #aaa; 
+    font-size: 18px; 
+    margin-bottom: 5px; 
+    display: flex; 
+    align-items: center; 
+}
+
+.hud-sub-separator { 
+    margin: 0 10px; 
+    color: #555; 
+}
+
+.editable-text { 
+    cursor: pointer; 
+    transition: color 0.2s; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px; 
+}
+
+.editable-text:hover { 
+    color: #ffc400; 
+}
+
+/* Іконка олівця з'являється при наведенні */
+.edit-icon { 
+    font-size: 14px; 
+    opacity: 0; 
+    transition: opacity 0.2s; 
+}
+
+.editable-text:hover .edit-icon { 
+    opacity: 1; 
+}
+
+/* --- AVATAR & EDIT OVERLAY --- */
+.hud-avatar { 
+    width: 70px; 
+    height: 70px; 
+    border: 2px solid #835F0A; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    background: #000; 
+    position: relative; /* Важливо для overlay */
+    cursor: pointer;
+}
+
+.hud-avatar img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    transition: 0.2s;
+}
+
+.avatar-edit-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex; justify-content: center; align-items: center;
+    color: #fff;
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.hud-avatar:hover img {
+    filter: blur(2px);
+}
+
+.hud-avatar:hover .avatar-edit-overlay {
+    opacity: 1;
+}

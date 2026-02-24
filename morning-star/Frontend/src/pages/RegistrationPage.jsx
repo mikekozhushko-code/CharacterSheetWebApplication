@@ -18,7 +18,7 @@ const RegistrationPage = () => {
                             alt="Pass" 
                             width="379"         
                             height="569" 
-                            style={{transform:' translateY(-97.1px) scale(0.95)  '}}       
+                            style={{transform:' translateY(0.1px) scale(0.95)  '}}       
                         />
                     
                     <div className="login-form">
