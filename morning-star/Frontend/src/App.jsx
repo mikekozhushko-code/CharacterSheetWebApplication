@@ -14,7 +14,6 @@ import About from './pages/About';
 import Profile from './pages/Profile';
 import PrivateRoute from './components/PrivateRoute';
 import HomePage from './pages/HomePage.jsx'
-import Profile from './pages/Profile.jsx';
 import PublicRoute from './components/PublicRoute.jsx';
 
 
@@ -23,9 +22,7 @@ function App() {
     <LanguageProvider>
     <Routes>
       <Route path="/home" element={
-        <PublicRoute>
-          <HomePage />
-        </PublicRoute>
+        <HomePage />
         } />
 
       <Route path="/" element={
@@ -64,7 +61,6 @@ function App() {
         </PrivateRoute>
       } />
 
-        <Route path='/profile' element={<Profile/>}/>
       </Routes>
     </LanguageProvider>
   );

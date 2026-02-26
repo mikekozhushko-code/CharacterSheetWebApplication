@@ -54,12 +54,12 @@ const StatModal = ({ isOpen, onClose, stat, onSave, t }) => {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-header"><h3>{t(stat.name)} <span style={{color:'#ffc400'}}>{displayMod}</span></h3><button className="close-btn" onClick={onClose}>×</button></div>
+                <div className="modal-header"><h3>{stat.name} <span style={{color:'#ffc400'}}>{displayMod}</span></h3><button className="close-btn" onClick={onClose}>×</button></div>
                 <div className="modal-body">
-                    <div className="modal-field"><label>{t('score')}</label><input type="number" className="modal-input" value={localVal} onChange={(e) => setLocalVal(e.target.value)} /></div>
-                    <div className="modal-field"><label>{t('saveBonus')}</label><input type="text" className="modal-input" value={localSave} onChange={(e) => setLocalSave(e.target.value)} /></div>
+                    <div className="modal-field"><label>{'score'}</label><input type="number" className="modal-input" value={localVal} onChange={(e) => setLocalVal(e.target.value)} /></div>
+                    <div className="modal-field"><label>{'saveBonus'}</label><input type="text" className="modal-input" value={localSave} onChange={(e) => setLocalSave(e.target.value)} /></div>
                 </div>
-                <div className="modal-footer"><button className="save-btn" onClick={() => { onSave({ ...stat, val: parseInt(localVal), mod: displayMod, save: localSave }); onClose(); }}>{t('save')}</button></div>
+                <div className="modal-footer"><button className="save-btn" onClick={() => { onSave({ ...stat, val: parseInt(localVal), mod: displayMod, save: localSave }); onClose(); }}>{'save'}</button></div>
             </div>
         </div>
     );
@@ -297,7 +297,6 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
 //     const [modals, setModals] = useState({ stat: false, hp: false, xp: false, money: false, generic: false, spells: false });
 //     const [selectedStat, setSelectedStat] = useState(null);
 //     const [genericData, setGenericData] = useState({ title: '', key: '' });
-//     const [activeTab, setActiveTab] = useState('attacks'); 
 //     const [modalLevelFilter, setModalLevelFilter] = useState(null);
 //     const [expandedSpells, setExpandedSpells] = useState({});
 
@@ -356,6 +355,7 @@ const Character_info = () => {
     // Єбана залупа я тебе ненавиджу сука блятський git
     const [character, setCharacter] = useState([]);
     const [stats, setStats] = useState([]);
+    const [activeTab, setActiveTab] = useState('attacks'); 
     const [skills, setSkills] = useState([]);
     const [char, setChar] = useState(null);
     const { id } = useParams();
@@ -426,6 +426,7 @@ const Character_info = () => {
     //                         <span className="editable-text" onClick={() => openGeneric('race', t('race'))}>{char.race} <span className="edit-icon">✎</span></span>
     //                         <span className="hud-sub-separator">•</span>
     //                         <span className="editable-text" onClick={() => openGeneric('charClass', t('charClass'))}>{char.charClass} <span className="edit-icon">✎</span></span>
+    const t = null;
     const openGeneric = (key, title) => { setGenericData({ key, title }); toggleModal('generic', true); };
     const updateStat = (newStat) => {
         console.log(newStat);
@@ -530,7 +531,6 @@ const Character_info = () => {
         );
     };
 
-
     if (!character || !char || !stats) return <p>Loading...</p>
 
     return (
@@ -549,7 +549,6 @@ const Character_info = () => {
                             <div className="hud-xp-fill" style={{ width: `${xpPerc}%` }}></div>
                             <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span>
                         </div>
-                        <div className="hud-xp-bar" onClick={()=>toggleModal('xp', true)}><div className="hud-xp-fill" style={{width: `${xpPerc}%`}}></div><span className="hud-xp-text">{t('lvl')} {char.level} • {char.xp} / {char.maxXp}</span></div>
                     </div>
                 </div>
                 <div className="hud-stats">
@@ -602,12 +601,12 @@ const Character_info = () => {
                         <input type="radio" name="deck" id="deck-inv" hidden />
 
                         <div className="deck-nav">
-                            <label className={activeTab === 'attacks' ? 'active' : ''} onClick={() => setActiveTab('attacks')}>{t('tabAttacks')}</label>
-                            <label className={activeTab === 'spells' ? 'active' : ''} onClick={() => setActiveTab('spells')}>{t('tabSpells')}</label>
-                            <label className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>{t('tabItems')}</label>
-                            <label className={activeTab === 'notes' ? 'active' : ''} onClick={() => setActiveTab('notes')}>{t('tabNotes')}</label>
-                            <label className={activeTab === 'appearance' ? 'active' : ''} onClick={() => setActiveTab('appearance')}>{t('tabLook')}</label>
-                            <label className={activeTab === 'goals' ? 'active' : ''} onClick={() => setActiveTab('goals')}>{t('tabGoals')}</label>
+                            <label className={activeTab === 'attacks' ? 'active' : ''} onClick={() => setActiveTab('attacks')}>{('tabAttacks')}</label>
+                            <label className={activeTab === 'spells' ? 'active' : ''} onClick={() => setActiveTab('spells')}>{('tabSpells')}</label>
+                            <label className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>{('tabItems')}</label>
+                            <label className={activeTab === 'notes' ? 'active' : ''} onClick={() => setActiveTab('notes')}>{('tabNotes')}</label>
+                            <label className={activeTab === 'appearance' ? 'active' : ''} onClick={() => setActiveTab('appearance')}>{('tabLook')}</label>
+                            <label className={activeTab === 'goals' ? 'active' : ''} onClick={() => setActiveTab('goals')}>{('tabGoals')}</label>
                         </div>
                         
                         <div className="deck-content">
