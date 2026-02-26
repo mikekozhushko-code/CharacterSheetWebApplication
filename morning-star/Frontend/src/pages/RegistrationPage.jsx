@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 const RegistrationPage = () => {
     return (
         <>
-            <Header isAuthPage={true} btnText="Sign In" btnLink="/" />
+            <Header isAuthPage={true} btnText="signIn" btnLink="/" />
             
             <main>
                 <div className="login">

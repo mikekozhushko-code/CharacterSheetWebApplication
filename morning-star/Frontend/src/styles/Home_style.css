@@ -3,6 +3,17 @@
 /* --- GLOBAL RESET --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+.home-wrapper {
+    font-family: "Jaini", "Kurale", system-ui;
+}
+
+.lang-uk .hero-title {
+    font-size: 3.5rem; 
+}
+
+.lang-uk .hero-subtitle {
+    letter-spacing: 2px;
+}
 html, body {
     width: 100%; min-height: 100vh;
     background-color: #0b0909;

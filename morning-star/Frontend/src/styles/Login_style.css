@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Jaini&family=Jaini+Purva&family=Momo+Trust+Display&display=swap');
 
 main .login {
-    margin-top: -50px; 
+    margin-top: 15px; 
     display: flex;
     justify-content: center;
     align-items: center; 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/Profile_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
+import { useLanguage } from '../context/LanguageContext'; // ✅ Імпорт
 
 const getMaskedEmail = (email) => {
     if (!email || !email.includes('@')) return email;
@@ -11,8 +11,8 @@ const getMaskedEmail = (email) => {
     return `${visiblePart}***@${domain}`;
 };
 
-
 const ChangePasswordModal = ({ isOpen, onClose, email }) => {
+    const { t } = useLanguage(); // ✅ Додаємо переклад
     const [step, setStep] = useState(1); 
 
     if (!isOpen) return null;
@@ -28,7 +28,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
         <div className="epic-modal-overlay" onClick={handleClose}>
             <div className="epic-modal-content" onClick={e => e.stopPropagation()}>
                 <div className="epic-modal-header">
-                    <h3>Arcane Security</h3>
+                    <h3>{t('arcaneSecurity')}</h3>
                     <button className="epic-close-btn" onClick={handleClose}>×</button>
                 </div>
                 
@@ -36,22 +36,22 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
                     {step === 1 ? (
                         <div className="security-step">
                             <p className="security-msg">
-                                To secure your grimoire, we sent a magic rune to: <br/>
+                                {t('securityMsg')} <br/>
                                 <span className="highlight-email">{getMaskedEmail(email)}</span>
                             </p>
                             <div className="epic-field-group">
-                                <label>Verification Code</label>
+                                <label>{t('verificationCode')}</label>
                                 <input type="text" placeholder="XB-99-21" className="epic-input text-center" />
                             </div>
                         </div>
                     ) : (
                         <div className="security-step">
                             <div className="epic-field-group">
-                                <label>New Password</label>
+                                <label>{t('newPassword')}</label>
                                 <input type="password" placeholder="••••••" className="epic-input" />
                             </div>
                             <div className="epic-field-group">
-                                <label>Confirm Password</label>
+                                <label>{t('confirmPassword')}</label>
                                 <input type="password" placeholder="••••••" className="epic-input" />
                             </div>
                         </div>
@@ -60,9 +60,9 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
 
                 <div className="epic-modal-footer">
                     {step === 1 ? (
-                        <button className="epic-btn-save" onClick={handleVerify}>Verify Rune</button>
+                        <button className="epic-btn-save" onClick={handleVerify}>{t('verifyRune')}</button>
                     ) : (
-                        <button className="epic-btn-save" onClick={handleClose}>Update Password</button>
+                        <button className="epic-btn-save" onClick={handleClose}>{t('updatePassBtn')}</button>
                     )}
                 </div>
             </div>
@@ -71,12 +71,13 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
 };
 
 const CharacterCard = ({ char }) => {
+    const { t } = useLanguage(); // ✅ Додаємо переклад
     if (char.type === 'new') {
         return (
             <div className="epic-char-card new-slot">
                 <div className="new-slot-inner">
                     <span className="epic-plus">+</span>
-                    <span className="epic-new-text">Forge New Legend</span>
+                    <span className="epic-new-text">{t('forgeLegend')}</span>
                 </div>
             </div>
         );
@@ -91,9 +92,9 @@ const CharacterCard = ({ char }) => {
                 </div>
                 <div className="epic-card-footer">
                     <h3 className="epic-name">{char.name}</h3>
-                    <p className="epic-race">{char.race} • {char.class}</p>
+                    <p className="epic-race">{char.race} • {t(char.class.toLowerCase())}</p> {/* ✅ Переклад класу */}
                     <div className="epic-actions">
-                        <button className="epic-btn-play">Open Sheet</button>
+                        <button className="epic-btn-play">{t('openSheet')}</button>
                         <button className="epic-btn-edit">⚙️</button>
                     </div>
                 </div>
@@ -103,6 +104,7 @@ const CharacterCard = ({ char }) => {
 };
 
 const Profile = () => {
+    const { t, language } = useLanguage(); // ✅ Додаємо t та мову
     const [activeTab, setActiveTab] = useState('heroes');
     const [isPassModalOpen, setPassModalOpen] = useState(false);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
@@ -147,11 +149,11 @@ const Profile = () => {
             about: formData.about
         }));
         setIsEditingEmail(false);
-        alert("Grimoire Updated Successfully!");
+        alert(t('updateSuccess')); // ✅ Локалізоване сповіщення
     };
 
     return (
-        <div className={`epic-wrapper bg-${user.theme}`}>
+        <div className={`epic-wrapper bg-${user.theme} ${language === 'uk' ? 'lang-uk' : ''}`}>
             <Header />
             
             <div className="epic-container">
@@ -177,8 +179,8 @@ const Profile = () => {
 
                 <div className="epic-nav-bar">
                     <div className="nav-line"></div>
-                    <button className={`epic-nav-btn ${activeTab === 'heroes' ? 'active' : ''}`} onClick={() => setActiveTab('heroes')}>My Heroes</button>
-                    <button className={`epic-nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>Settings</button>
+                    <button className={`epic-nav-btn ${activeTab === 'heroes' ? 'active' : ''}`} onClick={() => setActiveTab('heroes')}>{t('myHeroes')}</button>
+                    <button className={`epic-nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>{t('settings')}</button>
                     <div className="nav-line"></div>
                 </div>
 
@@ -194,7 +196,7 @@ const Profile = () => {
                     
                     {activeTab === 'settings' && (
                          <div className="epic-settings-panel">
-                            <h2 className="settings-title">Account Scrolls</h2>
+                            <h2 className="settings-title">{t('accountScrolls')}</h2>
 
                             <div className="settings-grid">
                                 
@@ -202,20 +204,20 @@ const Profile = () => {
                                     <div className="settings-avatar-preview">
                                         <img src={user.avatar} alt="Avatar" />
                                     </div>
-                                    <button className="epic-btn-outline mb-20">Change Portrait</button>
+                                    <button className="epic-btn-outline mb-20">{t('changePortrait')}</button>
 
-                                    <label className="epic-label-small">Current Realm</label>
+                                    <label className="epic-label-small">{t('currentRealm')}</label>
                                     <div className="realm-selector">
-                                        <button className={`realm-btn ${user.theme === 'tavern' ? 'active' : ''}`} onClick={() => changeTheme('tavern')} title="The Tavern">🍺</button>
-                                        <button className={`realm-btn ${user.theme === 'forest' ? 'active' : ''}`} onClick={() => changeTheme('forest')} title="Dark Forest">🌲</button>
-                                        <button className={`realm-btn ${user.theme === 'crypt' ? 'active' : ''}`} onClick={() => changeTheme('crypt')} title="The Crypt">💀</button>
-                                        <button className={`realm-btn ${user.theme === 'citadel' ? 'active' : ''}`} onClick={() => changeTheme('citadel')} title="Golden Citadel">🏰</button>
+                                        <button className={`realm-btn ${user.theme === 'tavern' ? 'active' : ''}`} onClick={() => changeTheme('tavern')} title={t('tavern')}>🍺</button>
+                                        <button className={`realm-btn ${user.theme === 'forest' ? 'active' : ''}`} onClick={() => changeTheme('forest')} title={t('forest')}>🌲</button>
+                                        <button className={`realm-btn ${user.theme === 'crypt' ? 'active' : ''}`} onClick={() => changeTheme('crypt')} title={t('crypt')}>💀</button>
+                                        <button className={`realm-btn ${user.theme === 'citadel' ? 'active' : ''}`} onClick={() => changeTheme('citadel')} title={t('citadel')}>🏰</button>
                                     </div>
                                 </div>
 
                                 <div className="settings-section form-section">
                                     <div className="epic-field-group">
-                                        <label>Adventurer Name</label>
+                                        <label>{t('advName')}</label>
                                         <input 
                                             type="text" 
                                             name="name"
@@ -226,7 +228,7 @@ const Profile = () => {
                                     </div>
 
                                     <div className="epic-field-group">
-                                        <label>Email Scroll</label>
+                                        <label>{t('emailScroll')}</label>
                                         <div className="email-input-wrapper">
                                             {isEditingEmail ? (
                                                 <input 
@@ -240,6 +242,7 @@ const Profile = () => {
                                             ) : (
                                                 <input 
                                                     type="text" 
+                                                    name="email"
                                                     value={getMaskedEmail(user.email)} 
                                                     disabled 
                                                     className="epic-input disabled" 
@@ -256,7 +259,7 @@ const Profile = () => {
                                     </div>
 
                                     <div className="epic-field-group">
-                                        <label>Legend (About)</label>
+                                        <label>{t('legendAbout')}</label>
                                         <textarea 
                                             name="about"
                                             value={formData.about} 
@@ -268,13 +271,13 @@ const Profile = () => {
                             </div>
 
                             <div className="settings-footer">
-                                <button className="epic-btn-outline" onClick={() => setPassModalOpen(true)}>Change Password</button>
+                                <button className="epic-btn-outline" onClick={() => setPassModalOpen(true)}>{t('changePass')}</button>
                                 <div className="spacer"></div>
-                                <button className="epic-btn-save" onClick={saveChanges}>Save Changes</button>
+                                <button className="epic-btn-save" onClick={saveChanges}>{t('saveChanges')}</button>
                             </div>
 
                             <div className="settings-danger-zone">
-                                <button className="epic-btn-danger">LOG OUT</button>
+                                <button className="epic-btn-danger">{t('logOut')}</button>
                             </div>
                         </div>
                     )}

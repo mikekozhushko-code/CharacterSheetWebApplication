@@ -2,9 +2,11 @@ import React, { useEffect } from 'react';
 import '../styles/Home_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLanguage } from '../context/LanguageContext'; // ✅ Імпорт хука
 
 const Home = () => {
-    
+    const { t, language } = useLanguage(); // ✅ Дістаємо t та мову
+
     useEffect(() => {
         const handleMouseMove = (e) => {
             const moveX = (e.clientX * -0.02);
@@ -19,7 +21,8 @@ const Home = () => {
     }, []);
 
     return (
-        <div className="home-wrapper">
+        // ✅ Додаємо клас lang-uk для зміни шрифтів
+        <div className={`home-wrapper ${language === 'uk' ? 'lang-uk' : ''}`}>
             <Header />
 
             <section className="hero-section">
@@ -34,18 +37,15 @@ const Home = () => {
                 </div>
 
                 <div className="hero-content">
-                    <h2 className="hero-subtitle">The Tale Begins Here</h2>
+                    <h2 className="hero-subtitle">{t('heroSubtitle')}</h2>
                     <h1 className="hero-title">
-                        <span>Forge Your</span> <br />
-                        <span className="text-highlight">Legend</span>
+                        <span>{t('heroTitle1')}</span> <br />
+                        <span className="text-highlight">{t('heroTitle2')}</span>
                     </h1>
-                    <p className="hero-description">
-                        Manage your stats, spells, and inventory in one arcane tome. 
-                        No more lost papers. Just pure adventure.
-                    </p>
+                    <p className="hero-description">{t('heroDesc')}</p>
                     
                     <button className="cta-button-main">
-                        <span className="btn-text">Create Character</span>
+                        <span className="btn-text">{t('btnCreate')}</span>
                         <div className="btn-glow"></div>
                     </button>
                 </div>
@@ -53,34 +53,34 @@ const Home = () => {
 
             <section className="features-section">
                 <div className="section-header">
-                    <h3>Why Choose This Tool?</h3>
+                    <h3>{t('featuresTitle')}</h3>
                     <div className="header-decoration"></div>
                 </div>
 
                 <div className="features-grid">
                     <div className="feature-card">
                         <div className="feature-icon">⚔️</div>
-                        <h4>Combat Ready</h4>
-                        <p>Track initiative, HP, and spell slots in real-time. Never slow down the battle.</p>
+                        <h4>{t('feat1_title')}</h4>
+                        <p>{t('feat1_desc')}</p>
                     </div>
                     <div className="feature-card">
                         <div className="feature-icon">📜</div>
-                        <h4>Spellbook</h4>
-                        <p>Instant access to all your spells with damage calculators and descriptions.</p>
+                        <h4>{t('feat2_title')}</h4>
+                        <p>{t('feat2_desc')}</p>
                     </div>
                     <div className="feature-card">
                         <div className="feature-icon">🎒</div>
-                        <h4>Inventory</h4>
-                        <p>Manage your loot, gold, and equipment weight with a simple drag-and-drop feel.</p>
+                        <h4>{t('feat3_title')}</h4>
+                        <p>{t('feat3_desc')}</p>
                     </div>
                 </div>
             </section>
 
             <section className="quote-section">
                 <blockquote>
-                    "A blank character sheet is a promise of adventure, chaos, and glory."
+                    "{t('quote')}"
                 </blockquote>
-                <cite>— The Dungeon Master</cite>
+                <cite>— {t('dm')}</cite>
             </section>
 
             <Footer />

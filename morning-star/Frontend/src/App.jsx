@@ -1,5 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+
+import { LanguageProvider } from './context/LanguageContext';
+
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegistrationPage';
 import Wardrobe from './pages/Wardrobe';
@@ -14,29 +17,29 @@ const HomePage = () => <h1 style={{color: 'white', textAlign: 'center'}}>Welcome
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      
-      <Route path="/home" element={<HomePage />} />
-      
-      <Route path="/registration" element={<RegistrationPage />} />
+    <LanguageProvider>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        
+        <Route path="/home" element={<HomePage />} />
+        
+        <Route path="/registration" element={<RegistrationPage />} />
 
+        <Route path="/wardrobe" element={<Wardrobe />} />
 
-      <Route path="/wardrobe" element={<Wardrobe />} />
+        <Route path="/character" element={<Wardrobe_c />} />
 
-      <Route path="/character" element={<Wardrobe_c />} />
+        <Route path="/character-info" element={<Character_info />} />
+        
+        <Route path="/news" element={<News />} />
 
-      <Route path="/character-info" element={<Character_info />} />
-      <Route path="/news" element={<News />} />
+        <Route path="/main" element={<Main/>} />
 
-      <Route path="/main" element={<Main/>} />
+        <Route path='/about' element={<About/>}/>
 
-      <Route path='/about' element={<About/>}/>
-
-      <Route path='/profile' element={<Profile/>}/>
-
-
-    </Routes>
+        <Route path='/profile' element={<Profile/>}/>
+      </Routes>
+    </LanguageProvider>
   );
 }
 

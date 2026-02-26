@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Jaini&family=Jaini+Purva&family=Momo+Trust+Display&display=swap');
 
 .wardrobe-wrapper {
+    font-family: "Jaini", "Kurale", system-ui;
+}
+
+.lang-uk .stat-label {
+    font-size: 12px;
+}
+
+.wardrobe-wrapper {
 
     background-image: url('/assets/images/Wardrobe_bg.jpg'); 
     background-size: cover;      
@@ -59,7 +67,7 @@ main{
     text-decoration: none;
     background-color: #452B02;
     border:1px solid #835F0A;
-    font-family: "Jaini", system-ui;
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 26px; 
     align-self: end;
     border-radius: 10px;
@@ -137,7 +145,7 @@ main{
     justify-content: center;
     align-items: flex-start;
     flex-direction: column;
-    font-family: "Jaini", system-ui;
+    font-family: "Jaini", "Kurale", system-ui;
     color: white;
     line-height: 1;
     transition: transform 0.4s ease;
@@ -219,7 +227,7 @@ main{
     border: 1px solid #452B02;
     border-radius: 6px;
     padding: 4px;
-    font-family: "Jaini", system-ui;
+    font-family: "Jaini", "Kurale", system-ui;
     color: #e0e0e0;
     line-height: 1;
     min-width: 45px;

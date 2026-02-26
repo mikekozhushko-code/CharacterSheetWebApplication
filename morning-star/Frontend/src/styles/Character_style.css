@@ -1,4 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Jaini&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jaini&family=Kurale&display=swap');
+
+
+
+.lang-uk .sheet-label,
+.lang-uk .attack-header-labels,
+.lang-uk .qs-label {
+    font-size: 10px !important;
+    font-family: 'Kurale', system-ui !important;
+}
+
 
 * { box-sizing: border-box; }
 
@@ -11,7 +22,7 @@ html, body {
     margin: 0; padding: 0; width: 100%; min-height: 100vh;
     background-color: #0b0909; 
     color: #e0e0e0;
-    font-family: "Jaini", system-ui;
+    font-family: "Jaini", "Kurale", system-ui;
     overflow-x: hidden;
 }
 
@@ -44,24 +55,23 @@ html, body {
 .hud-info h1 { margin: 0; font-size: 36px; line-height: 1; color: #fff; text-shadow: 0 2px 4px #000; }
 .hud-sub { color: #aaa; font-size: 18px; margin-bottom: 5px; }
 
-/* XP Bar */
 .hud-xp-bar {
     width: 300px; height: 20px; background: #2a1a05; border: 1px solid #5e3a03; border-radius: 4px;
     position: relative; overflow: hidden; cursor: pointer;
 }
 .hud-xp-fill { height: 100%; background: linear-gradient(90deg, #d32f2f, #b71c1c); transition: width 0.5s ease; }
-.hud-xp-text { position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px; font-size: 12px; color: #fff; text-shadow: 1px 1px 2px #000; letter-spacing: 1px; font-family: sans-serif; font-weight: bold; }
+.hud-xp-text { position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px; font-size: 12px; color: #fff; text-shadow: 1px 1px 2px #000; letter-spacing: 1px;  font-weight: bold; }
 
 .hud-stats { display: flex; gap: 20px; align-items: center; }
 
-/* Hexagon Stats (AC, Speed, Prof) */
 .hud-stat-hex {
     width: 55px; height: 60px;
     background: #1a120b; border: 1px solid #5e3a03;
-    /* Кліп-шлях для форми щита/гекса */
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     display: flex; flex-direction: column; justify-content: center; align-items: center;
-    cursor: pointer; transition: transform 0.2s;
+    cursor: pointer; transition: transform 0.2s
+    ;
+    font-family: "Jaini", "Kurale", system-ui;
 }
 .hud-stat-hex:hover { transform: scale(1.1); border-color: #ffc400; background: #3d2608; }
 .hex-val { font-size: 22px; color: #fff; line-height: 1; font-weight: bold; }
@@ -109,7 +119,7 @@ html, body {
 .v-stat-card:hover { border-color: #ffc400; background: #1f1814; transform: translateX(5px); }
 .v-stat-mod { font-size: 36px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #ffc400; }
 .v-stat-val { font-size: 14px; color: #888; border: 1px solid #444; border-radius: 10px; padding: 0 8px; margin: 4px 0; background: #000; }
-.v-stat-name { font-size: 12px; text-transform: uppercase; color: #aaa; letter-spacing: 1px; }
+.v-stat-name { font-size: 12px; text-transform: uppercase; color: #aaa; letter-spacing: 1px;font-family: "Jaini", "Kurale", system-ui; }
 .v-stat-save-tiny { font-size: 10px; color: #666; position: absolute; bottom: 2px; }
 
 
@@ -123,7 +133,9 @@ html, body {
 .quick-stat {
     flex: 1; background: #1a120b; border: 1px solid #5e3a03; border-radius: 6px;
     height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    cursor: pointer; transition: 0.2s;
+    cursor: pointer; transition: 0.2s
+    ;
+    
 }
 .quick-stat:hover { border-color: #aaa; background: #251b12; }
 .qs-val { font-size: 32px; color: #fff; line-height: 1; }
@@ -137,10 +149,11 @@ html, body {
 }
 
 .deck-nav {
-    display: flex; background: #120c08; border-bottom: 1px solid #5e3a03;
+    display: flex; background: #120c08; border-bottom: 1px solid #5e3a03
+    ;
 }
 .deck-nav label {
-    flex: 1; text-align: center; padding: 15px; font-size: 22px; color: #888; cursor: pointer; transition: 0.2s;
+    flex: 1; text-align: center; padding: 15px; font-size: 22px; color: #888; cursor: pointer; transition: 0.2s;font-family: "Jaini", "Kurale", system-ui;
 }
 .deck-nav label:hover { color: #ccc; background: #1a1512; }
 
@@ -159,7 +172,7 @@ html, body {
 .fancy-table { width: 100%; border-collapse: collapse; }
 .fancy-table th { text-align: left; color: #d32f2f; font-size: 20px; padding: 10px; border-bottom: 1px solid #5e3a03; }
 .fancy-table td { padding: 10px 5px; border-bottom: 1px solid rgba(94, 58, 3, 0.3); }
-.table-input { background: transparent; border: none; color: #e0e0e0; font-size: 20px; font-family: inherit; width: 100%; }
+.table-input { background: transparent; border: none; color: #e0e0e0; font-size: 20px; font-family: "Jaini", "Kurale", system-ui; width: 100%; }
 .table-input:focus { outline: none; color: #ffc400; }
 .table-input.center { text-align: center; }
 
@@ -172,7 +185,7 @@ html, body {
     height: 100%; overflow-y: auto;
 }
 
-.panel-header { font-size: 26px; color: #888; border-bottom: 1px solid #5e3a03; padding-bottom: 5px; margin-bottom: 10px; }
+.panel-header { font-size: 26px; color: #888; border-bottom: 1px solid #5e3a03; padding-bottom: 5px; margin-bottom: 10px;font-family: "Jaini", "Kurale", system-ui; }
 
 .skills-scroll-container { flex: 1; padding-right: 5px; }
 
@@ -186,7 +199,7 @@ html, body {
 .skill-indicator { width: 10px; height: 10px; border: 1px solid #666; transform: rotate(45deg); margin-right: 15px; }
 .skill-indicator.proficient { background: #ffc400; border-color: #ffc400; box-shadow: 0 0 5px #ffc400; }
 
-.skill-name { flex: 1; font-size: 18px; color: #ccc; }
+.skill-name { flex: 1; font-size: 18px; color: #ccc; font-family: "Jaini", "Kurale", system-ui;}
 .skill-stat-tag { font-size: 12px; color: #666; margin-left: 5px; }
 .skill-val { font-size: 18px; color: #fff; font-weight: bold; }
 
@@ -199,7 +212,7 @@ html, body {
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 
-.modal-content.calculator-theme { background: #120c08; border: 2px solid #5e3a03; width: 420px; padding: 10px; box-shadow: 0 0 40px #000; font-family: "Jaini", system-ui; }
+.modal-content.calculator-theme { background: #120c08; border: 2px solid #5e3a03; width: 420px; padding: 10px; box-shadow: 0 0 40px #000; font-family: "Jaini", "Kurale", system-ui; }
 .calc-header { display: flex; justify-content: flex-end; padding-bottom: 10px; }
 .close-btn { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; }
 .close-btn:hover { color: #fff; }
@@ -211,13 +224,13 @@ html, body {
 .calc-backspace-btn { background: none; border: none; color: #888; font-size: 28px; cursor: pointer; }
 
 .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-.calc-key { height: 60px; background: #2a1a05; border: 1px solid #5e3a03; color: #e0e0e0; font-size: 26px; cursor: pointer; font-family: "Jaini", system-ui; border-radius: 4px; transition: 0.1s; }
+.calc-key { height: 60px; background: #2a1a05; border: 1px solid #5e3a03; color: #e0e0e0; font-size: 26px; cursor: pointer; font-family: "Jaini", "Kurale", system-ui; border-radius: 4px; transition: 0.1s; }
 .calc-key:hover { background: #3d2608; border-color: #ffc400; }
-.calc-key:active { transform: scale(0.95); }
+.calc-key:active { transform: scale(0.95);font-family: "Jaini", "Kurale", system-ui; }
 .calc-icon-slot { display: flex; justify-content: center; align-items: center; font-size: 24px; opacity: 0.7; pointer-events: none; }
 
 .calc-actions-row { display: flex; gap: 10px; }
-.calc-action-btn { flex: 1; height: 55px; border: none; border-radius: 4px; font-family: "Jaini", system-ui; font-size: 20px; cursor: pointer; color: #fff; text-transform: uppercase; font-weight: bold; border: 1px solid rgba(0,0,0,0.3); }
+.calc-action-btn { flex: 1; height: 55px; border: none; border-radius: 4px; font-family: "Jaini", "Kurale", system-ui; font-size: 20px; cursor: pointer; color: #fff; text-transform: uppercase; font-weight: bold; border: 1px solid rgba(0,0,0,0.3); }
 .btn-temp { background: #424242; color: #bbb; border: 1px solid #666; }
 .btn-heal { background: #2e7d32; border: 1px solid #1b5e20; } 
 .btn-damage { background: #c62828; border: 1px solid #b71c1c; } 
@@ -230,12 +243,12 @@ html, body {
 .calc-settings-drawer.open { max-height: 120px; padding: 20px; margin-top: 10px; border-top: 1px solid #5e3a03; }
 .calc-settings-grid { display: flex; gap: 20px; }
 .calc-input-group { flex: 1; display: flex; flex-direction: column; }
-.calc-label { font-size: 14px; color: #888; text-transform: uppercase; font-family: sans-serif; font-weight: bold; margin-bottom: 5px; }
-.calc-settings-input { background: transparent; border: none; border-bottom: 1px solid #555; color: #fff; font-size: 20px; font-family: "Jaini"; width: 100%; padding-bottom: 2px; }
+.calc-label { font-size: 14px; color: #888; text-transform: uppercase;  font-weight: bold; margin-bottom: 5px; }
+.calc-settings-input { background: transparent; border: none; border-bottom: 1px solid #555; color: #fff; font-size: 20px; font-family: "Jaini", "Kurale", system-ui; width: 100%; padding-bottom: 2px; }
 .calc-settings-input:focus { outline: none; border-color: #ffc400; }
 
 .calc-coin-row { display: flex; gap: 15px; margin-bottom: 20px; padding: 0 10px; }
-.calc-coin-btn { flex: 1; background: #1a1512; border: 1px solid #333; color: #888; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; border-radius: 4px; font-family: "Jaini"; }
+.calc-coin-btn { flex: 1; background: #1a1512; border: 1px solid #333; color: #888; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; border-radius: 4px; font-family: "Jaini", "Kurale", system-ui; }
 .calc-coin-btn.active { background: #2a1a05; border-color: #ffc400; color: #fff; transform: translateY(-2px); }
 .calc-coin-btn span { font-size: 14px; opacity: 0.7; }
 .coin-pp.active { color: #e0e0e0; border-color: #e0e0e0; }
@@ -243,12 +256,12 @@ html, body {
 .coin-sp.active { color: #bdbdbd; border-color: #bdbdbd; }
 .coin-cp.active { color: #ff8a65; border-color: #ff8a65; }
 
-.modal-content:not(.calculator-theme) { background: #1a120b; border: 2px solid #835F0A; width: 1250px; padding: 20px; border-radius: 8px; box-shadow: 0 0 30px #000; }
-.modal-header { display: flex; justify-content: space-between; border-bottom: 1px solid #5e3a03; padding-bottom: 10px; margin-bottom: 20px; }
+.modal-content:not(.calculator-theme) { background: #1a120b; border: 2px solid #835F0A; width: 1250px; padding: 20px; border-radius: 8px; box-shadow: 0 0 30px #000; font-family: "Jaini", "Kurale", system-ui;}
+.modal-header { display: flex; justify-content: space-between; border-bottom: 1px solid #5e3a03; padding-bottom: 10px; margin-bottom: 20px;font-family: "Jaini", "Kurale", system-ui; }
 .modal-body { display: flex; gap: 20px; margin-bottom: 20px; }
 .modal-field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .modal-input { width: 100%; background: #000; border: 1px solid #5e3a03; color: #fff; padding: 8px; font-size: 22px; text-align: center; border-radius: 4px; }
-.save-btn { width: 100%; background: #835F0A; border: none; padding: 12px; color: #fff; font-family: "Jaini"; font-size: 22px; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+.save-btn { width: 100%; background: #835F0A; border: none; padding: 12px; color: #fff; font-family: "Jaini", "Kurale", system-ui; font-size: 22px; cursor: pointer; border-radius: 4px; transition: 0.2s; }
 .save-btn:hover { background: #a07410; }
 
 /* --- FIX FOR BUTTON VISIBILITY & SCROLLING --- */
@@ -272,6 +285,7 @@ html, body {
     color: #ffc400; 
     border-bottom: 2px solid #ffc400; 
     background: #1f1814;
+    font-family: "Jaini", "Kurale", system-ui;
 }
 
 /* --- SPELL SETTINGS MODAL STYLES (DARK THEME) --- */
@@ -301,7 +315,7 @@ html, body {
     padding-bottom: 20px;
 }
 .stat-box label { display: block; color: #888; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-.stat-box .stat-val { font-size: 24px; color: #fff; font-family: "Jaini"; }
+.stat-box .stat-val { font-size: 24px; color: #fff; font-family: "Jaini", "Kurale", system-ui; }
 .stat-box .stat-val.accent { font-size: 32px; color: #ffc400; }
 
 /* Slots Grid */
@@ -309,20 +323,20 @@ html, body {
 .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
 .slot-input-group { background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 4px; border-bottom: 1px solid #333; }
 .slot-input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
-.slot-input { width: 100%; background: transparent; border: none; color: #fff; font-size: 24px; font-family: "Jaini"; border-bottom: 1px solid #555; }
+.slot-input { width: 100%; background: transparent; border: none; color: #fff; font-size: 24px; font-family: "Jaini", "Kurale", system-ui; border-bottom: 1px solid #555; }
 .slot-input:focus { outline: none; border-color: #ffc400; }
 
 /* Spell Picker */
 .class-filters { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
 .filter-chip { background: #1a1512; border: 1px solid #444; color: #aaa; padding: 5px 15px; border-radius: 15px; cursor: pointer; font-size: 14px; white-space: nowrap; }
-.filter-chip.active { background: #ffc400; color: #000; border-color: #ffc400; font-weight: bold; }
+.filter-chip.active { background: #ffc400; color: #000; border-color: #ffc400; font-weight: bold;font-family: "Jaini", "Kurale", system-ui; }
 
 .spell-picker-list { display: flex; flex-direction: column; gap: 8px; }
 .spell-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid transparent; }
 .spell-picker-item:hover { background: rgba(255, 255, 255, 0.05); }
 .spell-picker-item.learned { border-color: #2e7d32; background: rgba(46, 125, 50, 0.1); }
 .spi-info { display: flex; flex-direction: column; }
-.spi-name { font-size: 18px; color: #e0e0e0; }
+.spi-name { font-size: 18px; color: #e0e0e0;font-family: "Jaini", "Kurale", system-ui; }
 .spi-meta { font-size: 12px; color: #777; }
 
 .spi-btn { padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; border: none; }
@@ -334,22 +348,22 @@ html, body {
 .attacks-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
 .attacks-header-row { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr 30px; gap: 10px; padding: 5px 10px; color: #888; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #5e3a03; }
 .attack-row { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr 30px; gap: 10px; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 4px; align-items: center; border-bottom: 1px solid #333; }
-.atk-input { background: transparent; border: none; color: #fff; font-family: "Jaini"; font-size: 18px; width: 100%; padding: 2px 5px; }
+.atk-input { background: transparent; border: none; color: #fff; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; width: 100%; padding: 2px 5px; }
 .atk-input:focus { background: #1a1512; outline: 1px solid #ffc400; }
-.add-btn { background: #2e7d32; color: #fff; border: none; padding: 10px 15px; font-family: "Jaini"; font-size: 18px; cursor: pointer; border-radius: 4px; width: 100%; border: 1px solid #1b5e20; margin-top: auto; }
+.add-btn { background: #2e7d32; color: #fff; border: none; padding: 10px 15px; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; cursor: pointer; border-radius: 4px; width: 100%; border: 1px solid #1b5e20; margin-top: auto; }
 .add-btn:hover { background: #388e3c; }
 .delete-btn { background: transparent; border: none; color: #666; font-size: 20px; cursor: pointer; }
 .delete-btn:hover { color: #d32f2f; }
 
 /* --- TEXTAREAS --- */
-.epic-textarea { width: 100%; height: 100%; min-height: 250px; background: #0b0909; border: 1px solid #5e3a03; color: #e0e0e0; padding: 10px; font-family: "Jaini"; font-size: 18px; resize: none; border-radius: 4px; }
+.epic-textarea { width: 100%; height: 100%; min-height: 250px; background: #0b0909; border: 1px solid #5e3a03; color: #e0e0e0; padding: 10px; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; resize: none; border-radius: 4px; }
 .epic-textarea:focus { outline: none; border-color: #ffc400; }
 
 .spell-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; }
 .slots-preview { display: flex; gap: 8px; flex-wrap: wrap; }
 .slot-badge { background: #1a120b; border: 1px solid #5e3a03; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #aaa; }
 .slot-badge b { color: #ffc400; }
-.settings-btn-long { background: #2a1a05; border: 1px solid #5e3a03; color: #e0e0e0; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: "Jaini"; font-size: 16px; }
+.settings-btn-long { background: #2a1a05; border: 1px solid #5e3a03; color: #e0e0e0; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: "Jaini", "Kurale", system-ui; font-size: 16px; }
 .settings-btn-long:hover { background: #3d2608; border-color: #ffc400; }
 .empty-msg { text-align: center; color: #666; margin-top: 30px; font-style: italic; }
 
@@ -385,7 +399,7 @@ html, body {
 .th-title {
     font-size: 20px;
     color: #ffc400;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     text-transform: uppercase;
 }
 
@@ -492,7 +506,7 @@ html, body {
     border: 1px solid #5e3a03;
     color: #e0e0e0;
     padding: 8px;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 16px;
     border-radius: 4px;
     flex: 1;
@@ -532,7 +546,7 @@ html, body {
 }
 .stat-box { text-align: center; }
 .stat-box label { display: block; color: #888; font-size: 14px; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px;}
-.stat-box .stat-val { font-size: 28px; color: #fff; font-family: "Jaini"; line-height: 1;}
+.stat-box .stat-val { font-size: 28px; color: #fff; font-family: "Jaini", "Kurale", system-ui; line-height: 1;}
 .stat-box .stat-val.accent { color: #ffc400; font-size: 36px; }
 
 /* Slots Grid */
@@ -540,7 +554,7 @@ html, body {
     font-size: 22px; color: #ffc400; 
     border-bottom: 1px solid #5e3a03; 
     padding-bottom: 10px; margin: 30px 0 20px 0; 
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
 }
 
 .slots-grid { 
@@ -555,7 +569,7 @@ html, body {
 .slot-input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 5px; }
 .slot-input { 
     width: 50px; background: transparent; border: none; border-bottom: 2px solid #555; 
-    color: #fff; font-size: 24px; font-family: "Jaini"; text-align: center;
+    color: #fff; font-size: 24px; font-family: "Jaini", "Kurale", system-ui; text-align: center;
 }
 .slot-input:focus { outline: none; border-color: #ffc400; }
 
@@ -584,7 +598,7 @@ html, body {
 }
 
 .spi-info { display: flex; flex-direction: column; }
-.spi-name { font-size: 20px; color: #fff; font-family: "Jaini"; }
+.spi-name { font-size: 20px; color: #fff; font-family: "Jaini", "Kurale", system-ui; }
 .spi-meta { font-size: 13px; color: #888; text-transform: uppercase; margin-top: 2px;}
 
 .spi-btn {
@@ -607,7 +621,7 @@ html, body {
 .filters-row { display: flex; gap: 15px; margin-bottom: 20px; }
 .filter-select {
     background: #000; border: 1px solid #5e3a03; color: #ffc400;
-    padding: 10px; font-size: 16px; font-family: "Jaini"; border-radius: 4px;
+    padding: 10px; font-size: 16px; font-family: "Jaini", "Kurale", system-ui; border-radius: 4px;
     cursor: pointer; min-width: 150px;
 }
 
@@ -632,7 +646,7 @@ html, body {
 }
 
 .modal-section-title {
-    font-family: "Jaini", system-ui;
+    font-family: "Jaini", "Kurale", system-ui;
     color: #e0e0e0;
     font-size: 32px;
     margin: 0 0 20px 0;
@@ -657,7 +671,7 @@ html, body {
     border: 1px solid #5e3a03;
     color: #e0e0e0;
     padding: 10px;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 18px;
     border-radius: 4px;
     cursor: pointer;
@@ -695,7 +709,7 @@ html, body {
 .spi-name {
     font-size: 20px;
     color: #fff;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-weight: bold;
 }
 
@@ -711,7 +725,7 @@ html, body {
     padding: 6px 20px;
     border-radius: 4px;
     cursor: pointer;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -745,7 +759,7 @@ html, body {
     border: none;
     font-size: 24px;
     padding: 15px;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     cursor: pointer;
 }
 .close-grimoire:hover {
@@ -781,7 +795,7 @@ html, body {
 .th-title {
     font-size: 20px;
     color: #ccc;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
 }
 
 .tier-add-btn {
@@ -821,7 +835,7 @@ html, body {
     padding: 0 10px 5px 10px;
     border-bottom: 1px solid #3a3f4b;
     margin-bottom: 10px;
-    font-family: sans-serif;
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 11px;
     font-weight: bold;
     color: #8fa3b0;
@@ -863,7 +877,7 @@ html, body {
     background: transparent;
     border: none;
     color: #e0e0e0;
-    font-family: sans-serif;
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 14px;
     outline: none;
 }
@@ -932,7 +946,7 @@ html, body {
 }
 
 .sheet-label {
-    font-family: sans-serif;
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 12px;
     font-weight: bold;
     color: #8fa3b0;
@@ -950,7 +964,7 @@ html, body {
     border-radius: 4px;
     color: #ccc;
     padding: 10px;
-    font-family: sans-serif;
+    
     font-size: 14px;
     resize: vertical;
     line-height: 1.5;
@@ -969,7 +983,7 @@ html, body {
     padding: 0 10px 5px 10px;
     border-bottom: 1px solid #3a3f4b;
     margin-bottom: 15px;
-    font-family: sans-serif;
+    
     font-size: 11px;
     font-weight: bold;
     color: #8fa3b0;
@@ -1012,7 +1026,7 @@ html, body {
     background: transparent;
     border: none;
     color: #e0e0e0;
-    font-family: sans-serif;
+    
     font-size: 14px;
     outline: none;
     height: 100%;
@@ -1066,7 +1080,7 @@ html, body {
 }
 
 .sheet-label {
-    font-family: sans-serif;
+    
     font-size: 11px;
     font-weight: bold;
     color: #8fa3b0;
@@ -1089,7 +1103,7 @@ html, body {
     border-radius: 4px;
     color: #ccc;
     padding: 12px;
-    font-family: sans-serif;
+    
     font-size: 14px;
     resize: vertical;
     line-height: 1.5;
@@ -1123,13 +1137,13 @@ html, body {
     grid-template-columns: 2fr 1fr 1fr 1fr; /* Name | Dmg | Dur | Range */
     align-items: center;
     padding: 10px 15px;
-    font-family: sans-serif;
+    
     color: #ccc;
 }
 
 .sr-name {
     font-weight: bold;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 18px;
     color: #fff;
 }
@@ -1189,7 +1203,7 @@ html, body {
 .spi-dmg-tag {
     color: #ff5252; /* Червоний колір для шкоди */
     font-weight: bold;
-    font-family: sans-serif;
+    
 }
 
 /* Якщо хочете, щоб це виглядало як тег */
@@ -1210,14 +1224,14 @@ html, body {
     grid-template-columns: 1fr 140px 100px 100px; 
     align-items: center;
     padding: 12px 15px;
-    font-family: sans-serif;
+    
     color: #ccc;
     gap: 10px;
 }
 
 .sr-name {
     font-weight: bold;
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 20px;
     color: #fff;
     white-space: nowrap;
@@ -1283,6 +1297,7 @@ html, body {
     font-size: 12px;
     color: #666;
     font-weight: bold;
+    font-family: "Jaini", "Kurale", system-ui;
 }
 
 .col-h-icon {
@@ -1298,7 +1313,7 @@ html, body {
     grid-template-columns: 1fr 140px 100px 100px; 
     align-items: center;
     padding: 12px 15px;
-    font-family: sans-serif;
+    
     color: #ccc;
     gap: 10px;
 }
@@ -1357,6 +1372,7 @@ html, body {
     color: #ef5350;
     font-size: 12px;
     font-weight: bold;
+    font-family: "Jaini", "Kurale", system-ui;
 }
 
 .spell-picker-details {
@@ -1392,7 +1408,7 @@ html, body {
     padding: 0 10px 5px 10px;
     border-bottom: 2px solid #5e3a03; /* Золота лінія */
     margin-bottom: 15px;
-    font-family: sans-serif;
+    
     font-size: 11px;
     font-weight: bold;
     color: #888;
@@ -1436,7 +1452,7 @@ html, body {
     background: transparent;
     border: none;
     color: #e0e0e0;
-    font-family: sans-serif;
+    
     font-size: 14px;
     outline: none;
     height: 100%;
@@ -1451,7 +1467,7 @@ html, body {
     padding: 10px;
     border-radius: 4px;
     font-weight: bold;
-    font-family: "Jaini"; /* Шрифт як у спелів */
+    font-family: "Jaini", "Kurale", system-ui; /* Шрифт як у спелів */
     font-size: 18px;
 }
 .clean-input.name:focus { border-color: #5e3a03; background: #1a120b; }
@@ -1464,7 +1480,7 @@ html, body {
     border-radius: 4px;
     display: flex; justify-content: center; align-items: center;
 }
-.clean-input.bonus { text-align: center; font-size: 18px; font-weight: bold; font-family: "Jaini"; color: #ffc400; }
+.clean-input.bonus { text-align: center; font-size: 18px; font-weight: bold; font-family: "Jaini", "Kurale", system-ui; color: #ffc400; }
 
 /* Damage Box */
 .damage-box {
@@ -1489,7 +1505,7 @@ html, body {
 }
 
 .sheet-label {
-    font-family: "Jaini";
+    font-family: "Jaini", "Kurale", system-ui;
     font-size: 18px;
     color: #ffc400;
     text-transform: uppercase;
@@ -1504,7 +1520,7 @@ html, body {
     border-radius: 4px;
     color: #ccc;
     padding: 12px;
-    font-family: sans-serif;
+    
     font-size: 14px;
     resize: vertical;
     line-height: 1.5;
@@ -1515,15 +1531,15 @@ html, body {
 .inv-top-row { display: flex; gap: 15px; margin-bottom: 20px; }
 .inv-field-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .inv-field-group.small { flex: 0 0 120px; }
-.inv-field-group label { font-family: sans-serif; font-size: 11px; font-weight: bold; color: #ffc400; text-transform: uppercase; }
-.inv-input-box { background: #15100d; border: 1px solid #3a3f4b; border-radius: 4px; color: #e0e0e0; padding: 10px 12px; font-family: "Jaini", system-ui; font-size: 18px; width: 100%; outline: none; }
+.inv-field-group label {  font-size: 11px; font-weight: bold; color: #ffc400; text-transform: uppercase; }
+.inv-input-box { background: #15100d; border: 1px solid #3a3f4b; border-radius: 4px; color: #e0e0e0; padding: 10px 12px; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; width: 100%; outline: none; }
 .inv-input-box:focus { border-color: #ffc400; background: #232833; }
-.inv-select-box { background: #1e222b; border: 1px solid #3a3f4b; border-radius: 4px; color: #e0e0e0; padding: 10px; font-family: "Jaini", system-ui; font-size: 18px; width: 100%; outline: none; cursor: pointer; }
+.inv-select-box { background: #1e222b; border: 1px solid #3a3f4b; border-radius: 4px; color: #e0e0e0; padding: 10px; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; width: 100%; outline: none; cursor: pointer; }
 .inv-select-box:focus { border-color: #ffc400; }
 .sheet-textarea.large { min-height: 180px; }
 
 /* --- ATTACKS TAB (Dark/Gold Theme) --- */
-.attack-header-labels { display: flex; align-items: center; padding: 0 10px 5px 10px; border-bottom: 2px solid #5e3a03; margin-bottom: 15px; font-family: sans-serif; font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; }
+.attack-header-labels { display: flex; align-items: center; padding: 0 10px 5px 10px; border-bottom: 2px solid #5e3a03; margin-bottom: 15px;  font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; }
 .attack-header-labels svg { margin-right: 5px; vertical-align: text-bottom; color: #ffc400; }
 .lbl-name { flex: 1; display: flex; align-items: center; }
 .lbl-bonus { width: 60px; text-align: center; display: flex; justify-content: center; align-items: center; }
@@ -1533,26 +1549,26 @@ html, body {
 .small-add-btn:hover { background: #5e3a03; color: #fff; }
 .attacks-list-clean { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
 .attack-row-clean { display: flex; align-items: center; gap: 15px; }
-.clean-input { background: transparent; border: none; color: #e0e0e0; font-family: sans-serif; font-size: 14px; outline: none; height: 100%; width: 100%; }
-.clean-input.name { flex: 1; background: #15100d; border: 1px solid #333; padding: 10px; border-radius: 4px; font-weight: bold; font-family: "Jaini"; font-size: 18px; }
+.clean-input { background: transparent; border: none; color: #e0e0e0;  font-size: 14px; outline: none; height: 100%; width: 100%; }
+.clean-input.name { flex: 1; background: #15100d; border: 1px solid #333; padding: 10px; border-radius: 4px; font-weight: bold; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; }
 .clean-input.name:focus { border-color: #5e3a03; background: #1a120b; }
 .bonus-box { width: 60px; height: 45px; background: #15100d; border: 1px solid #333; border-radius: 4px; display: flex; justify-content: center; align-items: center; }
-.clean-input.bonus { text-align: center; font-size: 18px; font-weight: bold; font-family: "Jaini"; color: #ffc400; }
+.clean-input.bonus { text-align: center; font-size: 18px; font-weight: bold; font-family: "Jaini", "Kurale", system-ui; color: #ffc400; }
 .damage-box { width: 140px; height: 45px; background: #15100d; border: 1px solid #333; border-radius: 4px; display: flex; justify-content: center; align-items: center; padding: 0 10px; }
 .clean-input.damage { font-size: 13px; text-align: center; color: #ef5350; font-weight: bold; }
 .clean-delete-btn { background: transparent; border: none; color: #555; font-size: 24px; cursor: pointer; width: 30px; display: flex; justify-content: center; }
 .clean-delete-btn:hover { color: #d32f2f; }
 .sheet-section { margin-top: 25px; display: flex; flex-direction: column; }
-.sheet-label { font-family: "Jaini"; font-size: 18px; color: #ffc400; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #5e3a03; }
-.sheet-textarea { width: 100%; min-height: 120px; background: #15100d; border: 1px solid #333; border-radius: 4px; color: #ccc; padding: 12px; font-family: sans-serif; font-size: 14px; resize: vertical; line-height: 1.5; }
+.sheet-label { font-family: "Jaini", "Kurale", system-ui; font-size: 18px; color: #ffc400; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #5e3a03; }
+.sheet-textarea { width: 100%; min-height: 120px; background: #15100d; border: 1px solid #333; border-radius: 4px; color: #ccc; padding: 12px;  font-size: 14px; resize: vertical; line-height: 1.5; }
 .sheet-textarea:focus { outline: none; border-color: #5e3a03; background: #1a120b; }
 
 /* --- SPELLS --- */
 .spells-col-header { display: grid; grid-template-columns: 1fr 140px 100px 100px; padding: 0 15px 5px 15px; margin-bottom: 5px; border-bottom: 1px solid #333; align-items: center; }
 .col-h-name { font-size: 12px; color: #666; font-weight: bold; }
 .col-h-icon { display: flex; justify-content: center; align-items: center; color: #666; }
-.sr-header { display: grid; grid-template-columns: 1fr 140px 100px 100px; align-items: center; padding: 12px 15px; font-family: sans-serif; color: #ccc; gap: 10px; }
-.sr-name { font-weight: bold; font-family: "Jaini"; font-size: 20px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-header { display: grid; grid-template-columns: 1fr 140px 100px 100px; align-items: center; padding: 12px 15px;  color: #ccc; gap: 10px; }
+.sr-name { font-weight: bold; font-family: "Jaini", "Kurale", system-ui; font-size: 20px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sr-info { font-size: 14px; color: #aaa; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sr-info-box { text-align: center; font-weight: bold; font-size: 14px; padding: 4px 8px; border-radius: 4px; min-height: 28px; }
 .sr-info-box.stat-dmg { color: #ff5252; background: rgba(255, 82, 82, 0.1); border: 1px solid rgba(255, 82, 82, 0.3); }
@@ -1569,7 +1585,7 @@ html, body {
 .spell-settings-modal { width: 600px; max-width: 95vw; background: #100b05; border: 2px solid #835F0A; border-radius: 8px; display: flex; flex-direction: column; max-height: 85vh; color: #e0e0e0; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
 .spell-config-body { padding: 20px; overflow-y: auto; flex: 1; }
 .filters-row { display: flex; gap: 15px; margin-bottom: 20px; }
-.filter-select { flex: 1; background: #1a120b; border: 1px solid #5e3a03; color: #e0e0e0; padding: 10px; font-family: "Jaini"; font-size: 18px; border-radius: 4px; cursor: pointer; }
+.filter-select { flex: 1; background: #1a120b; border: 1px solid #5e3a03; color: #e0e0e0; padding: 10px; font-family: "Jaini", "Kurale", system-ui; font-size: 18px; border-radius: 4px; cursor: pointer; }
 .filter-select:focus { outline: none; border-color: #ffc400; }
 .spell-picker-list { display: flex; flex-direction: column; gap: 10px; }
 .spell-picker-item-wrapper { background: rgba(255, 255, 255, 0.03); border: 1px solid #333; border-radius: 6px; margin-bottom: 8px; transition: 0.2s; }
@@ -1577,17 +1593,17 @@ html, body {
 .spell-picker-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; cursor: pointer; }
 .spi-left, .spi-right { display: flex; align-items: center; gap: 10px; }
 .spi-chevron { color: #666; display: flex; align-items: center; }
-.spi-name { font-size: 20px; color: #fff; font-family: "Jaini"; font-weight: bold; }
+.spi-name { font-size: 20px; color: #fff; font-family: "Jaini", "Kurale", system-ui; font-weight: bold; }
 .spi-level-tag { background: #1a120b; border: 1px solid #5e3a03; font-size: 10px; padding: 2px 6px; border-radius: 4px; color: #aaa; text-transform: uppercase; }
 .spi-dmg-mini { color: #ef5350; font-size: 12px; font-weight: bold; }
 .spell-picker-details { padding: 15px; border-top: 1px dashed #333; background: rgba(0,0,0,0.2); font-size: 14px; color: #ccc; line-height: 1.5; }
 .spd-meta { display: flex; gap: 15px; margin-bottom: 10px; color: #888; font-size: 12px; }
-.spi-btn { padding: 6px 20px; border-radius: 4px; cursor: pointer; font-family: "Jaini"; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; }
+.spi-btn { padding: 6px 20px; border-radius: 4px; cursor: pointer; font-family: "Jaini", "Kurale", system-ui; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; }
 .spi-btn.add { background: transparent; color: #888; border: 1px solid #555; }
 .spi-btn.add:hover { border-color: #ffc400; color: #ffc400; }
 .spi-btn.prepared { background: transparent; color: #4caf50; border: 1px solid #4caf50; box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); }
 .spi-btn.prepared:hover { background: rgba(76, 175, 80, 0.1); }
-.close-grimoire { width: 100%; background: #835F0A; color: #fff; border: none; font-size: 24px; padding: 15px; font-family: "Jaini"; cursor: pointer; }
+.close-grimoire { width: 100%; background: #835F0A; color: #fff; border: none; font-size: 24px; padding: 15px; font-family: "Jaini", "Kurale", system-ui; cursor: pointer; }
 .close-grimoire:hover { background: #a07410; }
 
 /* --- TIERED LIST --- */
@@ -1595,7 +1611,7 @@ html, body {
 .tier-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
 .th-left { display: flex; align-items: center; gap: 10px; }
 .th-level-badge { background: #2a1a05; border: 1px solid #5e3a03; color: #ffc400; font-size: 12px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-.th-title { font-size: 20px; color: #ccc; font-family: "Jaini"; }
+.th-title { font-size: 20px; color: #ccc; font-family: "Jaini", "Kurale", system-ui; }
 .slot-bubbles { display: flex; gap: 5px; }
 .slot-bubble { width: 14px; height: 14px; border: 1px solid #ffc400; border-radius: 50%; cursor: pointer; background: transparent; transition: 0.2s; }
 .slot-bubble:hover { transform: scale(1.2); }
