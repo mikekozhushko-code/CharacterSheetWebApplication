@@ -357,8 +357,31 @@ const Character_info = () => {
     const [stats, setStats] = useState([]);
     const [activeTab, setActiveTab] = useState('attacks'); 
     const [skills, setSkills] = useState([]);
+    const fileInputRef = useRef(null);
     const [char, setChar] = useState(null);
     const { id } = useParams();
+
+    const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file); // назва поля має збігатися з моделлю/серіалізатором
+
+    authApi().patch(`/character-info/${id}/`, formData, {
+        headers: {
+        "Content-Type": "multipart/form-data",
+        },
+    })
+    .then((res) => {
+        setCharacter(res.data);
+        setStats(res.data.stats);
+        setChar(res.data.char);
+        setSkills(res.data.skills);
+    })
+    .catch((err) => console.error("Update char:", err.response?.data || err));
+    };
+
 
     useEffect(() => {
         authApi().get(`/character-info/${id}/`)
@@ -530,6 +553,7 @@ const Character_info = () => {
             </div>
         );
     };
+    console.log(character);
 
     if (!character || !char || !stats) return <p>Loading...</p>
 
@@ -540,11 +564,26 @@ const Character_info = () => {
             {/* 1. HUD (Floating Panel) */}
             <div className="hud-panel">
                 <div className="hud-left">
-                    {/* <div className="hud-avatar"><img src="/assets/images/Wizard.jpg" alt="Avatar" /></div> */}
-                    <div className="hud-avatar"><img src={character.avatar ? character.avatar : "test"} alt="Avatar" /></div>
+                    <div className="hud-avatar" onClick={() => fileInputRef.current.click()}>
+                    <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImageUpload} />
+                    <img 
+                        src={character.avatar} 
+                        alt="Avatar" 
+                        onError={(e) => e.target.src = "https://via.placeholder.com/150/15100d/ffc400?text=No+Image"} 
+                    />
+                    </div>
                     <div className="hud-info">
-                        <h1>{character.name}</h1>
-                        <div className="hud-sub">{character.race} • {character.class_type}</div>
+                        <h1 className="editable-text" onClick={() => openGeneric('name', 'Character Name')}>{character.name} <span className="edit-icon">✎</span></h1>
+                        <div className="hud-sub">
+                            <span className="editable-text" onClick={() => openGeneric('race', 'Race')}>
+                                {character.race || "Race"} <span className="edit-icon">✎</span>
+                            </span>
+                            <span className="hud-sub-separator">•</span>
+                            <span className="editable-text" onClick={() => openGeneric('class_type', 'Class')}>
+                                {character.class_type || "Class"} <span className="edit-icon">✎</span>
+                            </span>
+                        </div>
+
                         <div className="hud-xp-bar" onClick={() => toggleModal('xp', true)}>
                             <div className="hud-xp-fill" style={{ width: `${xpPerc}%` }}></div>
                             <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span>
