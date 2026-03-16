@@ -319,7 +319,6 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
 //         { id: 'wis', name: 'wis', val: 10, mod: '0', save: '0', skills: [{n:'insight', v:'+2', prof:true}, {n:'medicine', v:'0', prof:false}, {n:'perception', v:'0', prof:false}] }, 
 //         { id: 'cha', name: 'cha', val: 8, mod: '-1', save: '-1', skills: [{n:'deception', v:'-1', prof:false}, {n:'persuasion', v:'-1', prof:false}] }
 //     ]);
-//     const [attacks, setAttacks] = useState([{ id: 1, name: "Dagger", bonus: "+5", damage: "1d4 + 3 Piercing" }]);
 //     const [mySpells, setMySpells] = useState([]);
 //     const [spellSlots, setSpellSlots] = useState({ 1: {max: 4, used: 0}, 2: {max: 2, used: 0}, 3: {max: 0, used: 0}, 4: {max: 0, used: 0}, 5: {max: 0, used: 0}, 6: {max: 0, used: 0}, 7: {max: 0, used: 0}, 8: {max: 0, used: 0}, 9: {max: 0, used: 0} });
     
@@ -328,8 +327,6 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
 //     const [creatureSize, setCreatureSize] = useState("Medium");
 //     const [inventory, setInventory] = useState(""); 
 //     const [treasure, setTreasure] = useState("");   
-//     const [attackNotes, setAttackNotes] = useState(""); 
-//     const [featuresNotes, setFeaturesNotes] = useState("");
 //     const [notes, setNotes] = useState("");
 //     const [appearance, setAppearance] = useState("");
 //     const [goals, setGoals] = useState("");
@@ -353,6 +350,8 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
 /* --- ГОЛОВНИЙ КОМПОНЕНТ --- */
 const Character_info = () => {
     // Єбана залупа я тебе ненавиджу сука блятський git
+    const { t, language } = useLanguage();
+    const [featuresNotes, setFeaturesNotes] = useState("");
     const [character, setCharacter] = useState([]);
     const [stats, setStats] = useState([]);
     const [activeTab, setActiveTab] = useState('attacks'); 
@@ -360,7 +359,10 @@ const Character_info = () => {
     const fileInputRef = useRef(null);
     const [char, setChar] = useState(null);
     const { id } = useParams();
-
+    // const [attacks, setAttacks] = useState([{ id: 1, name: "Dagger", bonus: "+5", damage: "1d4 + 3 Piercing" }]);
+    const [attacks, setAttacks] = useState(null);
+    const [attackNotes, setAttackNotes] = useState(""); 
+    console.log(character)
     const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -378,6 +380,7 @@ const Character_info = () => {
         setStats(res.data.stats);
         setChar(res.data.char);
         setSkills(res.data.skills);
+        setAttackNotes(res.data.attack_notes)
     })
     .catch((err) => console.error("Update char:", err.response?.data || err));
     };
@@ -390,6 +393,7 @@ const Character_info = () => {
                 setStats(res.data.stats);
                 setChar(res.data.char);
                 setSkills(res.data.skills);
+                setAttacks(res.data.attacks);
             })
             .catch(err => console.log(err));
     }, [id]);
@@ -402,14 +406,26 @@ const Character_info = () => {
     // Helpers
     const toggleModal = (name, state) => setModals(prev => ({ ...prev, [name]: state }));
     const openStat = (s) => { setSelectedStat(s); toggleModal('stat', true); };
-    // const openGeneric = (key, title) => { setGenericData({key, title}); toggleModal('generic', true); };
-    // const updateStat = (newStat) => setStats(prev => prev.map(s => s.id === newStat.id ? newStat : s));
-    // const updateChar = (key, val) => setChar(prev => ({...prev, [key]: val}));
-    // const toggleSkill = (e, statId, idx) => { e.stopPropagation(); setStats(prev => prev.map(s => { if(s.id!==statId) return s; const skills = [...s.skills]; skills[idx].prof = !skills[idx].prof; return {...s, skills}; })); };
-    
     // const addAttack = () => setAttacks([...attacks, { id: Date.now(), name: "New Attack", bonus: "+0", damage: "1d6 Type" }]);
-    // const updateAttack = (id, field, value) => setAttacks(attacks.map(att => att.id === id ? { ...att, [field]: value } : att));
-    // const removeAttack = (id) => setAttacks(attacks.filter(att => att.id !== id));
+    const addAttack = () => {
+        const newAttack = [...attacks, { id: Date.now(), name: "New Attack", bonus: "+0", damage: "1d6 Type"}];
+        setAttacks(newAttack);
+        updateChar("attacks", newAttack);
+    }
+    const updateAttack = (id, field, value) => {
+        const newAttacks = attacks.map(att =>
+            att.id === id ? { ...att, [field]: value } : att
+        );
+
+        setAttacks(newAttacks);
+        updateChar("attacks", newAttacks);
+    };
+    const removeAttack = (id) => {
+        const newAttacks = attacks.filter(att => att.id !== id);
+
+        setAttacks(newAttacks);
+        updateChar("attacks", newAttacks);
+    };
     
     // const toggleSpell = (spell) => { const exists = mySpells.some(s => s.name === spell.name); if (exists) setMySpells(prev => prev.filter(s => s.name !== spell.name)); else setMySpells(prev => [...prev, spell]); };
     // const toggleSlotUsage = (lvl, index) => { setSpellSlots(prev => { const currentUsed = prev[lvl].used; const newUsed = (index + 1) === currentUsed ? index : index + 1; return {...prev, [lvl]: {...prev[lvl], used: newUsed}}; }); };
@@ -431,25 +447,6 @@ const Character_info = () => {
     //         </div>
     //     );
     // };
-
-    // return (
-    //     <div className={`char-info-wrapper ${language === 'uk' ? 'lang-uk' : ''}`}>
-    //         <Header/>
-    //         {/* HUD */}
-    //         <div className="hud-panel">
-    //             <div className="hud-left">
-    //                 <div className="hud-avatar" onClick={() => fileInputRef.current.click()}>
-    //                     <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImageUpload} />
-    //                     <img src={char.avatar} alt="Avatar" onError={(e) => e.target.src = "https://via.placeholder.com/150/15100d/ffc400?text=No+Image"} />
-    //                     <div className="avatar-edit-overlay">✎</div>
-    //                 </div>
-    //                 <div className="hud-info">
-    //                     <h1 className="editable-text" onClick={() => openGeneric('name', t('characterName'))}>{char.name} <span className="edit-icon">✎</span></h1>
-    //                     <div className="hud-sub">
-    //                         <span className="editable-text" onClick={() => openGeneric('race', t('race'))}>{char.race} <span className="edit-icon">✎</span></span>
-    //                         <span className="hud-sub-separator">•</span>
-    //                         <span className="editable-text" onClick={() => openGeneric('charClass', t('charClass'))}>{char.charClass} <span className="edit-icon">✎</span></span>
-    const t = null;
     const openGeneric = (key, title) => { setGenericData({ key, title }); toggleModal('generic', true); };
     const updateStat = (newStat) => {
         console.log(newStat);
@@ -498,6 +495,7 @@ const Character_info = () => {
             setStats(res.data.stats);
             setChar(res.data.char);
             setSkills(res.data.skills);
+            setAttacks(res.data.attacks);
             })
             .catch(err => console.error(`Update char: ${err}`));
     };
@@ -649,17 +647,100 @@ const Character_info = () => {
                         </div>
                         
                         <div className="deck-content">
-                            <div className="deck-pane pane-atk">
-                                <table className="fancy-table">
-                                    <thead><tr><th>Attack Name</th><th align="center">Bonus</th><th>Damage</th></tr></thead>
-                                    <tbody>
-                                        <tr><td><input defaultValue="Dagger" className="table-input" /></td><td align="center"><input defaultValue="+5" className="table-input center" /></td><td><input defaultValue="1d4+3 P" className="table-input" /></td></tr>
-                                        <tr><td><input defaultValue="Firebolt" className="table-input" /></td><td align="center"><input defaultValue="+6" className="table-input center" /></td><td><input defaultValue="1d10 Fire" className="table-input" /></td></tr>
-                                    </tbody>
-                                </table>
+                            {/* ATTACKS */}
+                            {activeTab === 'attacks' && (
+                            <div className="deck-pane">
+                                
+                                <div className="attack-header-labels">
+                                <span className="lbl-name">
+                                    <IconSword /> {t('atkName')}
+                                </span>
+
+                                <span className="lbl-bonus">
+                                    <IconTarget /> {t('atkBonus')}
+                                </span>
+
+                                <span className="lbl-dmg">
+                                    <IconSkull /> {t('atkDamage')}
+                                </span>
+
+                                <div className="lbl-actions">
+                                    <button 
+                                    className="small-add-btn" 
+                                    onClick={addAttack}
+                                    >
+                                    +
+                                    </button>
+                                </div>
+                                </div>
+
+                                <div className="attacks-list-clean">
+                                {attacks.map(att => (
+                                    <div key={att.id} className="attack-row-clean">
+                                    
+                                    <input
+                                        type="text"
+                                        className="clean-input name"
+                                        value={att.name}
+                                        onChange={(e) => updateAttack(att.id, 'name', e.target.value)}
+                                    />
+
+                                    <div className="bonus-box">
+                                        <input
+                                        type="text"
+                                        className="clean-input bonus"
+                                        value={att.bonus}
+                                        onChange={(e) => updateAttack(att.id, 'bonus', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="damage-box">
+                                        <input
+                                        type="text"
+                                        className="clean-input damage"
+                                        value={att.damage}
+                                        onChange={(e) => updateAttack(att.id, 'damage', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <button
+                                        className="clean-delete-btn"
+                                        onClick={() => removeAttack(att.id)}
+                                    >
+                                        −
+                                    </button>
+
+                                    </div>
+                                ))}
+                                </div>
+
+                                <div className="sheet-section">
+                                <div className="sheet-label">
+                                    {t('atkAndSpellcasting')}
+                                </div>
+
+                                <textarea
+                                    className="sheet-textarea"
+                                    value={attackNotes}
+                                    onChange={(e) => setAttackNotes(e.target.value)}
+                                />
+                                </div>
+
+                                <div className="sheet-section">
+                                <div className="sheet-label">
+                                    {t('featuresAndTraits')}
+                                </div>
+
+                                <textarea
+                                    className="sheet-textarea"
+                                    value={featuresNotes}
+                                    onChange={(e) => setFeaturesNotes(e.target.value)}
+                                />
+                                </div>
+
                             </div>
-                            <div className="deck-pane pane-spl"><p style={{ color: '#888' }}>Spell slots placeholder...</p></div>
-                            <div className="deck-pane pane-inv"><p style={{ color: '#888' }}>Equipment list placeholder...</p></div>
+                            )}
+                            {/* ATTACKS */}
                         </div>
                     </div>
                 </div>

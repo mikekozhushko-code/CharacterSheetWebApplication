@@ -2,7 +2,7 @@
 __pycache__/
 *.py[codz]
 *$py.class
-meida/
+media/
 # C extensions
 *.so
 
