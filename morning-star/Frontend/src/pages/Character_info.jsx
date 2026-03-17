@@ -471,6 +471,10 @@ const Character_info = () => {
     const [skills, setSkills]       = useState([]);
     const [attacks, setAttacks]     = useState([]);
     const [attackNotes, setAttackNotes] = useState('');
+    const [inventoryCapacity, setInventoryCapacity] = useState("");
+    const [creatureSize, setCreatureSize] = useState("Medium");
+    const [inventory, setInventory] = useState(""); 
+    const [treasure, setTreasure] = useState("");   
 
     // ── UI state ──────────────────────────────────────────────────────────────
     const [activeTab, setActiveTab]       = useState('attacks');
@@ -489,6 +493,11 @@ const Character_info = () => {
         setSkills(data.skills ?? []);
         setAttacks(data.attacks ?? []);
         if (data.attack_notes !== undefined) setAttackNotes(data.attack_notes);
+        if (data.features_notes !== undefined) setFeaturesNotes(data.features_notes);
+        if (data.inventory_capacity !== undefined) setInventoryCapacity(data.inventory_capacity);
+        if (data.creature_size !== undefined) setCreatureSize(data.creature_size);
+        if (data.inventory !== undefined) setInventory(data.inventory);
+        if (data.treasure !== undefined) setTreasure(data.treasure);
     }, []);
 
     // Універсальний PATCH — приймає довільний payload
@@ -678,6 +687,7 @@ const Character_info = () => {
                         </div>
 
                         <div className="deck-content">
+                            {/* ATTACKS (Dark Theme) */}
                             {activeTab === 'attacks' && (
                                 <div className="deck-pane">
                                     <div className="attack-header-labels">
@@ -695,7 +705,6 @@ const Character_info = () => {
                                     </div>
                                     <div className="sheet-section">
                                         <div className="sheet-label">{t('atkAndSpellcasting')}</div>
-                                        {/* <textarea className="sheet-textarea" value={attackNotes} onChange={(e) => setAttackNotes(e.target.value)}/> */}
                                         <textarea
                                             className="sheet-textarea"
                                             value={attackNotes}
@@ -705,7 +714,59 @@ const Character_info = () => {
                                     </div>
                                     <div className="sheet-section">
                                         <div className="sheet-label">{t('featuresAndTraits')}</div>
-                                        <textarea className="sheet-textarea" value={featuresNotes} onChange={(e) => setFeaturesNotes(e.target.value)}/>
+                                        <textarea
+                                            className="sheet-textarea"
+                                            value={featuresNotes}
+                                            onChange={(e) => setFeaturesNotes(e.target.value)}
+                                            onBlur={() => updateField('features_notes', featuresNotes)}  // ← додай
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {/* INVENTORY (Dark Theme) */}
+                            {activeTab === 'inventory' && (
+                                <div className="deck-pane">
+                                    <div className="inv-top-row">
+                                        <div className="inv-field-group">
+                                            <label>CARRYING CAPACITY</label>
+                                            <input
+                                                type="text" className="inv-input-box"
+                                                value={inventoryCapacity}
+                                                onChange={(e) => setInventoryCapacity(e.target.value)}
+                                                onBlur={() => updateField('inventory_capacity', inventoryCapacity)}
+                                                placeholder="0 / 150 lb"
+                                            />
+                                        </div>
+                                        <div className="inv-field-group small">
+                                            <label>SIZE</label>
+                                            {/* <select className="inv-select-box" value={creatureSize} onChange={(e) => setCreatureSize(e.target.value)}> */}
+                                            <select
+                                                className="inv-select-box"
+                                                value={creatureSize}
+                                                onChange={(e) => setCreatureSize(e.target.value)}
+                                                onBlur={() => updateField('creature_size', creatureSize)}
+                                            >
+                                                <option>Tiny</option>
+                                                <option>Small</option>
+                                                <option>Medium</option>
+                                                <option>Large</option>
+                                                <option>Huge</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="sheet-section">
+                                        <div className="sheet-label">EQUIPMENT</div>
+                                            <textarea className="sheet-textarea large" value={inventory}
+                                                onChange={(e) => setInventory(e.target.value)}
+                                                onBlur={() => updateField('inventory', inventory)}
+                                            />
+                                        </div>
+                                    <div className="sheet-section">
+                                        <div className="sheet-label">TREASURES</div>
+                                        <textarea className="sheet-textarea large" value={treasure}
+                                            onChange={(e) => setTreasure(e.target.value)}
+                                            onBlur={() => updateField('treasure', treasure)}
+                                        />
                                     </div>
                                 </div>
                             )}

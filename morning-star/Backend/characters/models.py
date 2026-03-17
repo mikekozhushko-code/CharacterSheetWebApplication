@@ -57,11 +57,17 @@ class Character(models.Model):
     # Coins
     wallet = models.JSONField(default=default_wallet)
 
-    # INVENTORY
+    # Personal Notes
     # Attacks Tab 
     attacks = models.JSONField(default=list, blank=True, null=True)
     attack_notes = models.TextField(blank=True, null=True)
-    features_and_traits = models.TextField(blank=True, null=True)
+    features_notes = models.TextField(blank=True, null=True)
+
+    # Inventory
+    inventory_capacity = models.CharField(max_length=50, blank=True, default='')
+    creature_size = models.CharField(max_length=20, blank=True, default='Medium')
+    inventory = models.JSONField(blank=True, null=True)
+    treasure = models.JSONField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
