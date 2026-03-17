@@ -17,6 +17,12 @@ const IconSword = () => (
     </svg>
 );
 
+const IconClock = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+);
+
 const IconTarget = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
@@ -81,6 +87,7 @@ const VerticalStat = ({ stat, onClick }) => (
         <div className="v-stat-save-tiny">SV {stat.save}</div>
     </div>
 );
+
 
 const SkillPanel = ({ skill, onClick }) => (
     <div className="skill-strip" onClick={onClick}>
@@ -370,6 +377,7 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
     const [filterLevel, setFilterLevel]   = useState('0');
     const [expandedSpell, setExpandedSpell] = useState(null);
 
+
     useEffect(() => {
         if (isOpen && initialLevelFilter !== null) setFilterLevel(initialLevelFilter.toString());
         setExpandedSpell(null);
@@ -475,6 +483,13 @@ const Character_info = () => {
     const [creatureSize, setCreatureSize] = useState("Medium");
     const [inventory, setInventory] = useState(""); 
     const [treasure, setTreasure] = useState("");   
+    const [notes, setNotes] = useState("");
+    const [appearance, setAppearance] = useState("");
+    const [goals, setGoals] = useState("");
+
+    // Spels
+    const [mySpells, setMySpells] = useState([]);
+    const [spellSlots, setSpellSlots] = useState({ 1: {max: 4, used: 0}, 2: {max: 2, used: 0}, 3: {max: 0, used: 0}, 4: {max: 0, used: 0}, 5: {max: 0, used: 0}, 6: {max: 0, used: 0}, 7: {max: 0, used: 0}, 8: {max: 0, used: 0}, 9: {max: 0, used: 0} });
 
     // ── UI state ──────────────────────────────────────────────────────────────
     const [activeTab, setActiveTab]       = useState('attacks');
@@ -498,6 +513,9 @@ const Character_info = () => {
         if (data.creature_size !== undefined) setCreatureSize(data.creature_size);
         if (data.inventory !== undefined) setInventory(data.inventory);
         if (data.treasure !== undefined) setTreasure(data.treasure);
+        if (data.notes !== undefined) setNotes(data.notes);
+        if (data.appearance !== undefined) setAppearance(data.appearance);
+        if (data.goals !== undefined) setGoals(data.goals);
     }, []);
 
     // Універсальний PATCH — приймає довільний payload
@@ -579,6 +597,19 @@ const Character_info = () => {
         const updated = attacks.filter((att) => att.id !== attackId);
         setAttacks(updated);
         updateField('attacks', updated);
+    };
+
+    const renderSpellTier = (level) => {
+        const tierSpells = mySpells.filter(s => s.level === level);
+        const slots = spellSlots[level];
+        const isCantrip = level === 0;
+        if (!isCantrip && (!slots || slots.max === 0) && tierSpells.length === 0) return null;
+        return (
+            <div className="spell-tier-block" key={level}>
+                <div className="tier-header"><div className="th-left"><span className="th-level-badge">{isCantrip ? 'C' : level}</span><span className="th-title">{isCantrip ? 'Cantrips' : `Level ${level}`}</span>{!isCantrip && (<div className="slot-bubbles">{Array.from({ length: 4 }).map((_, i) => (<div key={i} className={`slot-bubble ${i < (slots?.used || 0) ? 'used' : ''}`} onClick={() => toggleSlotUsage(level, i)}></div>))}</div>)}</div><button className="tier-add-btn" onClick={() => openSpellModalForLevel(level)}>+</button></div>
+                <div className="tier-list-container">{tierSpells.length === 0 ? <div className="tier-empty">No spells prepared</div> : tierSpells.map(spell => { const isExpanded = expandedSpells[spell.name]; const stats = getSpellStats(spell); return ( <div key={spell.name} className={`spell-row-item ${isExpanded ? 'expanded' : ''}`} onClick={() => toggleSpellExpand(spell.name)}><div className="sr-header"><div className="sr-name">{spell.name}</div><div className={`sr-info-box ${stats.className}`}>{stats.value}</div><div className="sr-info">{spell.duration || "Instant"}</div><div className="sr-info">{spell.range || "Touch"}</div></div>{isExpanded && (<div className="sr-details"><div className="sr-meta-tags"><span>{capitalize(spell.school)}</span><span>{spell.components?.join(', ').toUpperCase()}</span><span>{spell.actionType}</span></div><p>{spell.description}</p><button className="delete-spell-btn" onClick={(e) => { e.stopPropagation(); toggleSpell(spell); }}>Unprepare</button></div>)}</div> ); })}</div>
+            </div>
+        );
     };
 
     // ── Derived values ────────────────────────────────────────────────────────
@@ -723,6 +754,17 @@ const Character_info = () => {
                                     </div>
                                 </div>
                             )}
+                            {/* SPELLS (Gold Theme) */}
+                            {activeTab === 'spells' && (<div className="deck-pane spells-container">
+                                <div className="spells-col-header">
+                                    <span className="col-h-name">SPELL</span>
+                                    <span className="col-h-icon"><IconSword/></span>
+                                    <span className="col-h-icon"><IconClock/></span>
+                                    <span className="col-h-icon"><IconTarget/></span>
+                                </div>
+                                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(lvl => renderSpellTier(lvl))}
+                                <button className="settings-btn-long mt-20" onClick={() => openSpellModalForLevel('All')}>Open Grimoire (All Spells)</button>
+                            </div>)}
                             {/* INVENTORY (Dark Theme) */}
                             {activeTab === 'inventory' && (
                                 <div className="deck-pane">
@@ -739,7 +781,6 @@ const Character_info = () => {
                                         </div>
                                         <div className="inv-field-group small">
                                             <label>SIZE</label>
-                                            {/* <select className="inv-select-box" value={creatureSize} onChange={(e) => setCreatureSize(e.target.value)}> */}
                                             <select
                                                 className="inv-select-box"
                                                 value={creatureSize}
@@ -770,6 +811,32 @@ const Character_info = () => {
                                     </div>
                                 </div>
                             )}
+                            {/* NOTES (Dark Theme) */}
+                            {activeTab === 'notes' && <div className="deck-pane">
+                                <textarea
+                                    className="epic-textarea"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    onBlur={() => updateField('notes', notes)}
+                                    placeholder="Notes..."
+                                />
+                            </div>}
+                            {/* Appearance (Dark Theme) */}
+                            {activeTab === 'appearance' && <div className="deck-pane">
+                                <textarea className="epic-textarea" value={appearance}
+                                    onChange={(e) => setAppearance(e.target.value)}
+                                    onBlur={() => updateField('appearance', appearance)}
+                                    placeholder="Look..."
+                                />
+                            </div>}
+                            {/* Goals (Dark Theme) */}
+                            {activeTab === 'goals' && <div className="deck-pane">
+                                <textarea className="epic-textarea" value={goals}
+                                    onChange={(e) => setGoals(e.target.value)}
+                                    onBlur={() => updateField('goals', goals)}
+                                    placeholder="Goals..."
+                                />
+                            </div>}
                         </div>
                     </div>
                 </div>

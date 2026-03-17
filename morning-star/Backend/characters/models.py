@@ -69,6 +69,15 @@ class Character(models.Model):
     inventory = models.JSONField(blank=True, null=True)
     treasure = models.JSONField(blank=True, null=True)
 
+    # Notes
+    notes = models.TextField(blank=True, null=True)
+
+    #Appearce
+    appearance = models.TextField(blank=True, default='')
+
+    # Goals
+    goals = models.TextField(blank=True, default='')
+
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
 
