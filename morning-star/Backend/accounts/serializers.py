@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from characters.models import Character  # ← було accounts, стало characters
 from rest_framework import serializers
 from .models import Profile
 
@@ -34,7 +35,32 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("bio", "avatar", "created_at")
+    username   = serializers.CharField(source='user.username')
+    email      = serializers.EmailField(source='user.email', read_only=True)
+    characters = serializers.SerializerMethodField()
 
+    class Meta:
+        model  = Profile
+        fields = ('username', 'email', 'bio', 'avatar', 'created_at', 'characters')
+
+    def get_characters(self, obj):
+        chars = Character.objects.filter(owner=obj.user)
+        return [
+            {
+                'id':         c.id,
+                'name':       c.name,
+                'class_type': c.class_type,
+                'race':       c.race,
+                'level':      c.level,
+                'avatar':     c.avatar.url if c.avatar else None,
+            }
+            for c in chars
+        ]
+
+    def update(self, instance, validated_data):
+        # Extract nested user fields before saving profile
+        user_data = validated_data.pop('user', {})
+        if 'username' in user_data:
+            instance.user.username = user_data['username']
+            instance.user.save()
+        return super().update(instance, validated_data)

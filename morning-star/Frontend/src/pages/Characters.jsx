@@ -44,38 +44,38 @@ const Characters = () => {
                         {characters.map(char => (
                             <div className="character" key={char.id} onClick={() => handleClick(char.id)}>
                                 <div className="projection-container">
-                                    <img className="projection-image" src="/assets/images/Ranger.jpg" alt="Projection" />
+                                    <img className="projection-image" src={char.avatar} alt="Projection" />
 
                                     <div className="projection-stats">
                                         <div className="stat-block">
                                             <span className="stat-label">STR</span>
-                                            <span className="stat-value">16</span>
-                                            <span className="stat-modifier">(+3)</span>
+                                            <span className="stat-value">{char.str}</span>
+                                            <span className="stat-modifier">(+{char.str_save})</span>
                                         </div>
                                         <div className="stat-block highlight">
                                             <span className="stat-label">DEX</span>
-                                            <span className="stat-value">18</span>
-                                            <span className="stat-modifier">(+4)</span>
+                                            <span className="stat-value">{char.dex}</span>
+                                            <span className="stat-modifier">(+{char.dex_save})</span>
                                         </div>
                                         <div className="stat-block">
                                             <span className="stat-label">CON</span>
-                                            <span className="stat-value">15</span>
-                                            <span className="stat-modifier">(+2)</span>
+                                            <span className="stat-value">{char.con}</span>
+                                            <span className="stat-modifier">(+{char.con_save})</span>
                                         </div>
                                         <div className="stat-block ">
                                             <span className="stat-label">INT</span>
-                                            <span className="stat-value">10</span>
-                                            <span className="stat-modifier">(+0)</span>
+                                            <span className="stat-value">{char.int}</span>
+                                            <span className="stat-modifier">(+{char.int_save})</span>
                                         </div>
                                         <div className="stat-block">
                                             <span className="stat-label">WIS</span>
-                                            <span className="stat-value">9</span>
-                                            <span className="stat-modifier">(+0)</span>
+                                            <span className="stat-value">{char.wis}</span>
+                                            <span className="stat-modifier">(+{char.wis_save})</span>
                                         </div>
                                         <div className="stat-block">
                                             <span className="stat-label">CHA</span>
-                                            <span className="stat-value">10</span>
-                                            <span className="stat-modifier">(+0)</span>
+                                            <span className="stat-value">{char.chr}</span>
+                                            <span className="stat-modifier">(+{char.chr_save})</span>
                                         </div>
                                     </div>
                                 </div>
