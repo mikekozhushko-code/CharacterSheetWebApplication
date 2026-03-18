@@ -78,6 +78,10 @@ class Character(models.Model):
     # Goals
     goals = models.TextField(blank=True, default='')
 
+    # Spell
+    my_spells = models.JSONField(default=list, blank=True)
+    spell_slots = models.JSONField(default=dict, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
 

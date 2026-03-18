@@ -27,6 +27,7 @@ export const translations = {
         remove: "Remove",
 
         // --- HUD (Верхня панель) ---
+        haracterName: "New Character",
         level: "Level",
         lvl: "LVL",
         ac: "AC",
@@ -252,6 +253,7 @@ export const translations = {
         remove: "Відняти",
 
         // --- HUD (Верхня панель) ---
+        characterName: "Новий Персонаж",
         level: "Рівень",
         lvl: "РІВ",
         ac: "КБ",

@@ -47,11 +47,60 @@ const IconChevronDown = ({ rotated }) => (
     </svg>
 );
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+// XP required to reach the next level (key = current level)
+const XP_THRESHOLDS = {
+    1: 0, 2: 300, 3: 900, 4: 2700, 5: 6500,
+    6: 14000, 7: 23000, 8: 34000, 9: 48000, 10: 64000,
+    11: 85000, 12: 100000, 13: 120000, 14: 140000, 15: 165000,
+    16: 195000, 17: 225000, 18: 265000, 19: 305000, 20: 355000,
+};
+
+// Maps English skill names (from server) to translation keys
+const SKILL_NAME_TO_KEY = {
+    'Athletics':       'athletics',
+    'Acrobatics':      'acrobatics',
+    'Sleight of Hand': 'sleight',
+    'Stealth':         'stealth',
+    'Arcana':          'arcana',
+    'History':         'history',
+    'Investigation':   'investigation',
+    'Insight':         'insight',
+    'Medicine':        'medicine',
+    'Perception':      'perception',
+    'Deception':       'deception',
+    'Persuasion':      'persuasion',
+};
+
+// Creature size options with translation keys
+const CREATURE_SIZES = [
+    { value: 'Tiny',   key: 'sizeTiny'   },
+    { value: 'Small',  key: 'sizeSmall'  },
+    { value: 'Medium', key: 'sizeMedium' },
+    { value: 'Large',  key: 'sizeLarge'  },
+    { value: 'Huge',   key: 'sizeHuge'   },
+];
+
+// Default spell slot layout — used until the server returns saved data
+const DEFAULT_SPELL_SLOTS = {
+    1: { max: 4, used: 0 }, 2: { max: 2, used: 0 }, 3: { max: 0, used: 0 },
+    4: { max: 0, used: 0 }, 5: { max: 0, used: 0 }, 6: { max: 0, used: 0 },
+    7: { max: 0, used: 0 }, 8: { max: 0, used: 0 }, 9: { max: 0, used: 0 },
+};
+
+const SPELL_CLASSES     = ['All', 'bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard'];
+const SPELL_LEVELS      = ['All', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const SPELL_TIER_LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const COIN_TYPES        = ['pp', 'gp', 'sp', 'cp'];
+const CALC_NUMPAD       = [7, 8, 9, 4, 5, 6, 1, 2, 3, 0];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+const capitalize  = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 const getModifier = (score) => Math.floor((score - 10) / 2);
 
+/** Extracts heal/damage dice from a spell description for the spell list badge. */
 const getSpellStats = (spell) => {
     const desc = spell.description || '';
 
@@ -67,63 +116,75 @@ const getSpellStats = (spell) => {
     return { value: '-', className: '' };
 };
 
-const XP_THRESHOLDS = {
-    1: 0, 2: 300, 3: 900, 4: 2700, 5: 6500,
-    6: 14000, 7: 23000, 8: 34000, 9: 48000, 10: 64000,
-    11: 85000, 12: 100000, 13: 120000, 14: 140000, 15: 165000,
-    16: 195000, 17: 225000, 18: 265000, 19: 305000, 20: 355000,
-};
-
-const SPELL_CLASSES = ['All', 'bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard'];
-const SPELL_LEVELS  = ['All', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
 // ─── Small UI components ──────────────────────────────────────────────────────
 
-const VerticalStat = ({ stat, onClick }) => (
+/** Ability score card shown in the left column (STR, DEX, etc.). */
+const VerticalStat = ({ stat, onClick, t }) => (
     <div className="v-stat-card" onClick={onClick}>
         <div className="v-stat-mod">{stat.mod}</div>
         <div className="v-stat-val">{stat.val}</div>
-        <div className="v-stat-name">{stat.name.slice(0, 3).toUpperCase()}</div>
+        {/* Use stat.id as translation key — matches 'str', 'dex', etc. */}
+        <div className="v-stat-name">{t(stat.id).slice(0, 3).toUpperCase()}</div>
         <div className="v-stat-save-tiny">SV {stat.save}</div>
     </div>
 );
 
+/** Single skill row with a proficiency indicator dot. */
+const SkillPanel = ({ skill, onClick, t }) => {
+    // Server returns English name — map it to a translation key
+    const translationKey = SKILL_NAME_TO_KEY[skill.n] ?? skill.n;
+    return (
+        <div className="skill-strip" onClick={onClick}>
+            <div className={`skill-indicator ${skill.proof ? 'proficient' : ''}`}/>
+            <span className="skill-name">
+                {t(translationKey)} <span className="skill-stat-tag">({skill.id.toUpperCase()})</span>
+            </span>
+            <span className="skill-val">{skill.v}</span>
+        </div>
+    );
+};
 
-const SkillPanel = ({ skill, onClick }) => (
-    <div className="skill-strip" onClick={onClick}>
-        <div className={`skill-indicator ${skill.proof ? 'proficient' : ''}`}/>
-        <span className="skill-name">
-            {skill.n} <span className="skill-stat-tag">({skill.id.toUpperCase()})</span>
-        </span>
-        <span className="skill-val">{skill.v}</span>
-    </div>
-);
-
+/** Inline-editable attack row (name / bonus / damage / delete). */
 const AttackRow = ({ attack, onUpdate, onRemove }) => (
     <div className="attack-row-clean">
-        <input
-            type="text" className="clean-input name" value={attack.name}
-            onChange={(e) => onUpdate(attack.id, 'name', e.target.value)}
-        />
+        <input type="text" className="clean-input name" value={attack.name}
+            onChange={(e) => onUpdate(attack.id, 'name', e.target.value)}/>
         <div className="bonus-box">
-            <input
-                type="text" className="clean-input bonus" value={attack.bonus}
-                onChange={(e) => onUpdate(attack.id, 'bonus', e.target.value)}
-            />
+            <input type="text" className="clean-input bonus" value={attack.bonus}
+                onChange={(e) => onUpdate(attack.id, 'bonus', e.target.value)}/>
         </div>
         <div className="damage-box">
-            <input
-                type="text" className="clean-input damage" value={attack.damage}
-                onChange={(e) => onUpdate(attack.id, 'damage', e.target.value)}
-            />
+            <input type="text" className="clean-input damage" value={attack.damage}
+                onChange={(e) => onUpdate(attack.id, 'damage', e.target.value)}/>
         </div>
         <button className="clean-delete-btn" onClick={() => onRemove(attack.id)}>−</button>
     </div>
 );
 
+// ─── Shared calculator primitives ─────────────────────────────────────────────
+
+/** Input display row with a backspace button — shared by all calculator modals. */
+const CalcScreen = ({ value, onBackspace }) => (
+    <div className="calc-input-screen">
+        <span>{value}</span>
+        <button className="calc-backspace-btn" onClick={onBackspace}>⌫</button>
+    </div>
+);
+
+/** Numpad grid (7-8-9 … 0) — shared by HP / XP / Money calculators. */
+const CalcNumpad = ({ onDigit, extraSlots = null }) => (
+    <div className="calc-grid">
+        {CALC_NUMPAD.map((n) => (
+            <button key={n} className="calc-key" onClick={() => onDigit(n)}>{n}</button>
+        ))}
+        {extraSlots ?? <><div className="calc-key"/><div className="calc-key"/></>}
+    </div>
+);
+
 // ─── Modals ───────────────────────────────────────────────────────────────────
 
-const StatModal = ({ isOpen, onClose, stat, onSave }) => {
+/** Edit a single ability score and its saving throw modifier. */
+const StatModal = ({ isOpen, onClose, stat, onSave, t }) => {
     const [localVal, setLocalVal]   = useState(stat?.val ?? 10);
     const [localSave, setLocalSave] = useState(stat?.save ?? 0);
 
@@ -145,31 +206,34 @@ const StatModal = ({ isOpen, onClose, stat, onSave }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{stat.name} <span style={{ color: '#ffc400' }}>{displayMod}</span></h3>
+                    <h3>{t(stat.id)} <span style={{ color: '#ffc400' }}>{displayMod}</span></h3>
                     <button className="close-btn" onClick={onClose}>×</button>
                 </div>
                 <div className="modal-body">
                     <div className="modal-field">
-                        <label>Score</label>
-                        <input type="number" className="modal-input" value={localVal} onChange={(e) => setLocalVal(e.target.value)}/>
+                        <label>{t('score')}</label>
+                        <input type="number" className="modal-input" value={localVal}
+                            onChange={(e) => setLocalVal(e.target.value)}/>
                     </div>
                     <div className="modal-field">
-                        <label>Save Bonus</label>
-                        <input type="text" className="modal-input" value={localSave} onChange={(e) => setLocalSave(e.target.value)}/>
+                        <label>{t('saveBonus')}</label>
+                        <input type="text" className="modal-input" value={localSave}
+                            onChange={(e) => setLocalSave(e.target.value)}/>
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button className="save-btn" onClick={handleSave}>Save</button>
+                    <button className="save-btn" onClick={handleSave}>{t('save')}</button>
                 </div>
             </div>
         </div>
     );
 };
 
-const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
-    const [inputVal, setInputVal]     = useState('');
-    const [localMax, setLocalMax]     = useState(maxHP);
-    const [hitDie, setHitDie]         = useState('1d8');
+/** Calculator for applying healing, damage, or temp HP. */
+const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave, t }) => {
+    const [inputVal, setInputVal]         = useState('');
+    const [localMax, setLocalMax]         = useState(maxHP);
+    const [hitDie, setHitDie]             = useState('1d8');
     const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => { setLocalMax(maxHP); setInputVal(''); setShowSettings(false); }, [isOpen, maxHP]);
@@ -177,8 +241,8 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     if (!isOpen) return null;
 
     const applyChange = (type) => {
-        const val  = parseInt(inputVal, 10) || 0;
-        const raw  = type === 'heal' ? currentHP + val : currentHP - val;
+        const val   = parseInt(inputVal, 10) || 0;
+        const raw   = type === 'heal' ? currentHP + val : currentHP - val;
         const newHP = Math.max(0, Math.min(raw, localMax));
         onSave(newHP, localMax);
         onClose();
@@ -192,21 +256,20 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
                     <span style={{ color: '#e57373' }}>♥</span>{' '}
                     <span className="calc-val-accent">{currentHP}</span> / {localMax}
                 </div>
-                <div className="calc-input-screen">
-                    <span>{inputVal}</span>
-                    <button className="calc-backspace-btn" onClick={() => setInputVal((p) => p.slice(0, -1))}>⌫</button>
-                </div>
-                <div className="calc-grid">
-                    {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map((n) => (
-                        <button key={n} className="calc-key" onClick={() => setInputVal((p) => p + n)}>{n}</button>
-                    ))}
-                    <div className="calc-key calc-icon-slot" style={{ color: '#81c784' }}>🧪</div>
-                    <div className="calc-key calc-icon-slot" style={{ color: '#e57373' }}>🩸</div>
-                </div>
+                <CalcScreen value={inputVal} onBackspace={() => setInputVal((p) => p.slice(0, -1))}/>
+                <CalcNumpad
+                    onDigit={(n) => setInputVal((p) => p + n)}
+                    extraSlots={
+                        <>
+                            <div className="calc-key calc-icon-slot" style={{ color: '#81c784' }}>🧪</div>
+                            <div className="calc-key calc-icon-slot" style={{ color: '#e57373' }}>🩸</div>
+                        </>
+                    }
+                />
                 <div className="calc-actions-row">
-                    <button className="calc-action-btn btn-temp"   onClick={() => applyChange('temp')}>Temp</button>
-                    <button className="calc-action-btn btn-heal"   onClick={() => applyChange('heal')}>Heal</button>
-                    <button className="calc-action-btn btn-damage" onClick={() => applyChange('dmg')}>Dmg</button>
+                    <button className="calc-action-btn btn-temp"   onClick={() => applyChange('temp')}>{t('tempHp')}</button>
+                    <button className="calc-action-btn btn-heal"   onClick={() => applyChange('heal')}>{t('heal')}</button>
+                    <button className="calc-action-btn btn-damage" onClick={() => applyChange('dmg')}>{t('dmg')}</button>
                     <button
                         className={`calc-action-btn btn-settings-toggle ${showSettings ? 'active' : ''}`}
                         onClick={() => setShowSettings((s) => !s)}
@@ -215,13 +278,14 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
                 <div className={`calc-settings-drawer ${showSettings ? 'open' : ''}`}>
                     <div className="calc-settings-grid">
                         <div className="calc-input-group">
-                            <span className="calc-label">Max HP</span>
+                            <span className="calc-label">{t('maxHp')}</span>
                             <input type="number" className="calc-settings-input" value={localMax}
                                 onChange={(e) => setLocalMax(parseInt(e.target.value, 10) || 0)}/>
                         </div>
                         <div className="calc-input-group">
-                            <span className="calc-label">Hit Die</span>
-                            <input type="text" className="calc-settings-input" value={hitDie} onChange={(e) => setHitDie(e.target.value)}/>
+                            <span className="calc-label">{t('hitDie')}</span>
+                            <input type="text" className="calc-settings-input" value={hitDie}
+                                onChange={(e) => setHitDie(e.target.value)}/>
                         </div>
                     </div>
                 </div>
@@ -230,11 +294,12 @@ const HPCalculatorModal = ({ isOpen, onClose, currentHP, maxHP, onSave }) => {
     );
 };
 
-const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
-    const [inputVal, setInputVal]     = useState('');
-    const [localXP, setLocalXP]       = useState(xp);
-    const [localMaxXP, setLocalMaxXP] = useState(maxXp);
-    const [localLevel, setLocalLevel] = useState(level);
+/** Calculator for adding XP and triggering level-up. */
+const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave, t }) => {
+    const [inputVal, setInputVal]         = useState('');
+    const [localXP, setLocalXP]           = useState(xp);
+    const [localMaxXP, setLocalMaxXP]     = useState(maxXp);
+    const [localLevel, setLocalLevel]     = useState(level);
     const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
@@ -263,23 +328,15 @@ const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
             <div className="modal-content calculator-theme" onClick={(e) => e.stopPropagation()}>
                 <div className="calc-header"><button className="close-btn" onClick={onClose}>×</button></div>
                 <div className="calc-main-display">
-                    <span style={{ fontSize: '24px', display: 'block', color: '#888' }}>Level {localLevel}</span>
+                    <span style={{ fontSize: '24px', display: 'block', color: '#888' }}>{t('level')} {localLevel}</span>
                     <span className="calc-xp-accent">{localXP}</span> / {localMaxXP}
                 </div>
-                <div className="calc-input-screen">
-                    <span>{inputVal}</span>
-                    <button className="calc-backspace-btn" onClick={() => setInputVal((p) => p.slice(0, -1))}>⌫</button>
-                </div>
-                <div className="calc-grid">
-                    {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map((n) => (
-                        <button key={n} className="calc-key" onClick={() => setInputVal((p) => p + n)}>{n}</button>
-                    ))}
-                    <div className="calc-key"/><div className="calc-key"/>
-                </div>
+                <CalcScreen value={inputVal} onBackspace={() => setInputVal((p) => p.slice(0, -1))}/>
+                <CalcNumpad onDigit={(n) => setInputVal((p) => p + n)}/>
                 <div className="calc-actions-row">
                     {localXP >= localMaxXP
-                        ? <button className="calc-action-btn btn-level-up" onClick={handleLevelUp}>Level Up</button>
-                        : <button className="calc-action-btn btn-add-xp"   onClick={addXP}>Add XP</button>
+                        ? <button className="calc-action-btn btn-level-up" onClick={handleLevelUp}>{t('levelUp')}</button>
+                        : <button className="calc-action-btn btn-add-xp"   onClick={addXP}>{t('addXp')}</button>
                     }
                     <button
                         className={`calc-action-btn btn-settings-toggle ${showSettings ? 'active' : ''}`}
@@ -289,7 +346,7 @@ const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
                 <div className={`calc-settings-drawer ${showSettings ? 'open' : ''}`}>
                     <div className="calc-settings-grid">
                         <div className="calc-input-group">
-                            <span className="calc-label">Max XP</span>
+                            <span className="calc-label">{t('maxXp')}</span>
                             <input type="number" className="calc-settings-input" value={localMaxXP}
                                 onChange={(e) => setLocalMaxXP(parseInt(e.target.value, 10) || 0)}/>
                         </div>
@@ -300,7 +357,8 @@ const XPCalculatorModal = ({ isOpen, onClose, xp, maxXp, level, onSave }) => {
     );
 };
 
-const MoneyCalculatorModal = ({ isOpen, onClose, wallet, onSave }) => {
+/** Calculator for adding or spending coins (pp / gp / sp / cp). */
+const MoneyCalculatorModal = ({ isOpen, onClose, wallet, onSave, t }) => {
     const [inputVal, setInputVal]       = useState('');
     const [coin, setCoin]               = useState('gp');
     const [localWallet, setLocalWallet] = useState(wallet);
@@ -322,32 +380,25 @@ const MoneyCalculatorModal = ({ isOpen, onClose, wallet, onSave }) => {
                 <div className="calc-header"><button className="close-btn" onClick={onClose}>×</button></div>
                 <div className="calc-main-display" style={{ color: '#ffc107' }}>{localWallet.gp} G</div>
                 <div className="calc-coin-row">
-                    {['pp', 'gp', 'sp', 'cp'].map((c) => (
+                    {COIN_TYPES.map((c) => (
                         <button key={c} className={`calc-coin-btn coin-${c} ${coin === c ? 'active' : ''}`} onClick={() => setCoin(c)}>
                             {c.toUpperCase()} <span>{localWallet[c]}</span>
                         </button>
                     ))}
                 </div>
-                <div className="calc-input-screen">
-                    <span>{inputVal}</span>
-                    <button className="calc-backspace-btn" onClick={() => setInputVal((p) => p.slice(0, -1))}>⌫</button>
-                </div>
-                <div className="calc-grid">
-                    {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map((n) => (
-                        <button key={n} className="calc-key" onClick={() => setInputVal((p) => p + n)}>{n}</button>
-                    ))}
-                    <div className="calc-key"/><div className="calc-key"/>
-                </div>
+                <CalcScreen value={inputVal} onBackspace={() => setInputVal((p) => p.slice(0, -1))}/>
+                <CalcNumpad onDigit={(n) => setInputVal((p) => p + n)}/>
                 <div className="calc-actions-row">
-                    <button className="calc-action-btn btn-add-xp"  onClick={() => update('add')}>Add</button>
-                    <button className="calc-action-btn btn-damage"   onClick={() => update('sub')}>Rem</button>
+                    <button className="calc-action-btn btn-add-xp" onClick={() => update('add')}>{t('add')}</button>
+                    <button className="calc-action-btn btn-damage" onClick={() => update('sub')}>{t('remove')}</button>
                 </div>
             </div>
         </div>
     );
 };
 
-const GenericEditModal = ({ isOpen, onClose, title, value, onSave }) => {
+/** Generic single-field text modal (name, race, class, AC, speed, etc.). */
+const GenericEditModal = ({ isOpen, onClose, title, value, onSave, t }) => {
     const [val, setVal] = useState(value ?? '');
 
     useEffect(() => setVal(value ?? ''), [isOpen, value]);
@@ -365,18 +416,21 @@ const GenericEditModal = ({ isOpen, onClose, title, value, onSave }) => {
                     <input className="modal-input" value={val} onChange={(e) => setVal(e.target.value)}/>
                 </div>
                 <div className="modal-footer">
-                    <button className="save-btn" onClick={() => { onSave(val); onClose(); }}>Save</button>
+                    <button className="save-btn" onClick={() => { onSave(val); onClose(); }}>{t('save')}</button>
                 </div>
             </div>
         </div>
     );
 };
 
+/**
+ * Spell grimoire modal — browse the full spell list filtered by class and level,
+ * toggle individual spells as prepared / unprepared.
+ */
 const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, initialLevelFilter, t, currentSpellsData }) => {
-    const [filterClass, setFilterClass]   = useState('All');
-    const [filterLevel, setFilterLevel]   = useState('0');
+    const [filterClass, setFilterClass]     = useState('All');
+    const [filterLevel, setFilterLevel]     = useState('0');
     const [expandedSpell, setExpandedSpell] = useState(null);
-
 
     useEffect(() => {
         if (isOpen && initialLevelFilter !== null) setFilterLevel(initialLevelFilter.toString());
@@ -426,7 +480,7 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
                                     <div className="spell-picker-header" onClick={() => toggleDesc(spell.name)}>
                                         <div className="spi-left">
                                             <span className="spi-name">{spell.name}</span>
-                                            <span className="spi-level-tag">Lvl {spell.level}</span>
+                                            <span className="spi-level-tag">{t('lvl')} {spell.level}</span>
                                             {stats.value !== '-' && <span className="spi-dmg-mini">{stats.value}</span>}
                                         </div>
                                         <div className="spi-right">
@@ -470,55 +524,74 @@ const Character_info = () => {
     const { id }          = useParams();
     const fileInputRef    = useRef(null);
 
+    // Pick the spell database that matches the active UI language
     const activeSpellsDatabase = language === 'uk' ? spellsDataUk : spellsDataEn;
 
-    // ── Server state ──────────────────────────────────────────────────────────
-    const [character, setCharacter] = useState(null);
-    const [char, setChar]           = useState(null);
-    const [stats, setStats]         = useState([]);
-    const [skills, setSkills]       = useState([]);
-    const [attacks, setAttacks]     = useState([]);
-    const [attackNotes, setAttackNotes] = useState('');
-    const [inventoryCapacity, setInventoryCapacity] = useState("");
-    const [creatureSize, setCreatureSize] = useState("Medium");
-    const [inventory, setInventory] = useState(""); 
-    const [treasure, setTreasure] = useState("");   
-    const [notes, setNotes] = useState("");
-    const [appearance, setAppearance] = useState("");
-    const [goals, setGoals] = useState("");
+    // ── Server-synced state ───────────────────────────────────────────────────
+    const [character, setCharacter]                 = useState(null);
+    const [char, setChar]                           = useState(null);
+    const [stats, setStats]                         = useState([]);
+    const [skills, setSkills]                       = useState([]);
+    const [attacks, setAttacks]                     = useState([]);
+    const [attackNotes, setAttackNotes]             = useState('');
+    const [featuresNotes, setFeaturesNotes]         = useState('');
+    const [inventoryCapacity, setInventoryCapacity] = useState('');
+    const [creatureSize, setCreatureSize]           = useState('Medium');
+    const [inventory, setInventory]                 = useState('');
+    const [treasure, setTreasure]                   = useState('');
+    const [notes, setNotes]                         = useState('');
+    const [appearance, setAppearance]               = useState('');
+    const [goals, setGoals]                         = useState('');
 
-    // Spels
-    const [mySpells, setMySpells] = useState([]);
-    const [spellSlots, setSpellSlots] = useState({ 1: {max: 4, used: 0}, 2: {max: 2, used: 0}, 3: {max: 0, used: 0}, 4: {max: 0, used: 0}, 5: {max: 0, used: 0}, 6: {max: 0, used: 0}, 7: {max: 0, used: 0}, 8: {max: 0, used: 0}, 9: {max: 0, used: 0} });
+    // ── Spell state ───────────────────────────────────────────────────────────
+    // mySpells stores full spell objects locally; only names are persisted to the DB
+    const [mySpells, setMySpells]                 = useState([]);
+    const [spellSlots, setSpellSlots]             = useState(DEFAULT_SPELL_SLOTS);
+    const [modalLevelFilter, setModalLevelFilter] = useState(null);
+    const [expandedSpells, setExpandedSpells]     = useState({});
 
-    // ── UI state ──────────────────────────────────────────────────────────────
+    // ── UI-only state (not persisted to server) ───────────────────────────────
     const [activeTab, setActiveTab]       = useState('attacks');
-    const [featuresNotes, setFeaturesNotes] = useState('');
-    const [modals, setModals]             = useState({ stat: false, hp: false, xp: false, money: false, generic: false });
+    const [modals, setModals]             = useState({ stat: false, hp: false, xp: false, money: false, generic: false, spells: false });
     const [selectedStat, setSelectedStat] = useState(null);
     const [genericData, setGenericData]   = useState({ title: '', key: '' });
 
-    // ── API helpers ───────────────────────────────────────────────────────────
+    // ── API layer ─────────────────────────────────────────────────────────────
 
-    // Єдина функція синхронізації стейту з відповіддю сервера
+    /**
+     * Single source of truth for applying a server response to local state.
+     * Called after every GET and PATCH so the UI always reflects what the DB holds.
+     */
     const syncFromResponse = useCallback((data) => {
         setCharacter(data);
-        setStats(data.stats ?? []);
-        setChar(data.char ?? null);
+        setStats(data.stats   ?? []);
+        setChar(data.char     ?? null);
         setSkills(data.skills ?? []);
         setAttacks(data.attacks ?? []);
-        if (data.attack_notes !== undefined) setAttackNotes(data.attack_notes);
-        if (data.features_notes !== undefined) setFeaturesNotes(data.features_notes);
-        if (data.inventory_capacity !== undefined) setInventoryCapacity(data.inventory_capacity);
-        if (data.creature_size !== undefined) setCreatureSize(data.creature_size);
-        if (data.inventory !== undefined) setInventory(data.inventory);
-        if (data.treasure !== undefined) setTreasure(data.treasure);
-        if (data.notes !== undefined) setNotes(data.notes);
-        if (data.appearance !== undefined) setAppearance(data.appearance);
-        if (data.goals !== undefined) setGoals(data.goals);
-    }, []);
 
-    // Універсальний PATCH — приймає довільний payload
+        // Text fields — only update if the server returned the key
+        if (data.attack_notes       !== undefined) setAttackNotes(data.attack_notes);
+        if (data.features_notes     !== undefined) setFeaturesNotes(data.features_notes);
+        if (data.inventory_capacity !== undefined) setInventoryCapacity(data.inventory_capacity);
+        if (data.creature_size      !== undefined) setCreatureSize(data.creature_size);
+        if (data.inventory          !== undefined) setInventory(data.inventory);
+        if (data.treasure           !== undefined) setTreasure(data.treasure);
+        if (data.notes              !== undefined) setNotes(data.notes);
+        if (data.appearance         !== undefined) setAppearance(data.appearance);
+        if (data.goals              !== undefined) setGoals(data.goals);
+
+        // Resolve saved spell names back to full spell objects from the local JSON
+        if (data.my_spells !== undefined) {
+            setMySpells(activeSpellsDatabase.filter((s) => data.my_spells.includes(s.name)));
+        }
+
+        // Only replace spell slots if the server returned a non-empty object
+        if (data.spell_slots !== undefined && Object.keys(data.spell_slots).length > 0) {
+            setSpellSlots(data.spell_slots);
+        }
+    }, [activeSpellsDatabase]);
+
+    /** Universal PATCH — accepts any payload, syncs the full response. */
     const patch = useCallback(async (payload) => {
         try {
             const res = await authApi().patch(`/character-info/${id}/`, payload);
@@ -528,10 +601,10 @@ const Character_info = () => {
         }
     }, [id, syncFromResponse]);
 
-    const updateField = (key, value)  => patch({ [key]: value });
-    const updateBulk  = (data)        => patch(data);
+    const updateField = (key, value) => patch({ [key]: value });
+    const updateBulk  = (data)       => patch(data);
 
-    // ── Effects ───────────────────────────────────────────────────────────────
+    // ── Initial data fetch ────────────────────────────────────────────────────
 
     useEffect(() => {
         authApi()
@@ -543,11 +616,12 @@ const Character_info = () => {
     // ── Modal helpers ─────────────────────────────────────────────────────────
 
     const toggleModal = (name, state) => setModals((prev) => ({ ...prev, [name]: state }));
-    const openStat    = (stat)  => { setSelectedStat(stat); toggleModal('stat', true); };
-    const openGeneric = (key, title) => { setGenericData({ key, title }); toggleModal('generic', true); };
+    const openStat    = (stat)         => { setSelectedStat(stat); toggleModal('stat', true); };
+    const openGeneric = (key, title)   => { setGenericData({ key, title }); toggleModal('generic', true); };
 
     // ── Character actions ─────────────────────────────────────────────────────
 
+    /** Uploads a new avatar via multipart/form-data PATCH. */
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -559,13 +633,12 @@ const Character_info = () => {
             .catch((err) => console.error('Avatar upload error:', err.response?.data || err));
     };
 
+    /** Saves updated ability score + saving throw bonus to the server. */
     const updateStat = (newStat) => {
-        patch({
-            [newStat.id]: newStat.val,
-            [`${newStat.id}_save`]: newStat.save,
-        });
+        patch({ [newStat.id]: newStat.val, [`${newStat.id}_save`]: newStat.save });
     };
 
+    /** Toggles a skill proficiency and persists the updated proficiencies array. */
     const toggleSkillProficiency = async (skillName) => {
         if (!character) return;
         const proficiencies = character.proficiencies ?? [];
@@ -580,6 +653,8 @@ const Character_info = () => {
             console.error('Toggle skill error:', err);
         }
     };
+
+    // ── Attack actions ────────────────────────────────────────────────────────
 
     const addAttack = () => {
         const updated = [...attacks, { id: Date.now(), name: 'New Attack', bonus: '+0', damage: '1d6 Type' }];
@@ -599,27 +674,118 @@ const Character_info = () => {
         updateField('attacks', updated);
     };
 
+    // ── Spell actions ─────────────────────────────────────────────────────────
+
+    /** Toggles a spell in the prepared list; persists only spell names to the DB. */
+    const toggleSpell = (spell) => {
+        const exists  = mySpells.some((s) => s.name === spell.name);
+        const updated = exists
+            ? mySpells.filter((s) => s.name !== spell.name)
+            : [...mySpells, spell];
+        setMySpells(updated);
+        updateField('my_spells', updated.map((s) => s.name));
+    };
+
+    /** Marks a spell slot bubble as used/unused and saves the full slots object. */
+    const toggleSlotUsage = (lvl, index) => {
+        setSpellSlots((prev) => {
+            const slot    = prev[lvl] ?? { max: 0, used: 0 };
+            const newUsed = (index + 1) === slot.used ? index : index + 1;
+            const updated = { ...prev, [lvl]: { ...slot, used: newUsed } };
+            updateField('spell_slots', updated);
+            return updated;
+        });
+    };
+
+    const toggleSpellExpand      = (name) => setExpandedSpells((prev) => ({ ...prev, [name]: !prev[name] }));
+    const openSpellModalForLevel = (lvl)  => { setModalLevelFilter(lvl); toggleModal('spells', true); };
+
+    // ── Spell tier renderer ───────────────────────────────────────────────────
+
+    /**
+     * Renders one spell tier block (cantrips or a numbered level).
+     * Non-cantrip tiers with zero slots and no spells are hidden entirely.
+     */
     const renderSpellTier = (level) => {
-        const tierSpells = mySpells.filter(s => s.level === level);
-        const slots = spellSlots[level];
-        const isCantrip = level === 0;
+        const tierSpells = mySpells.filter((s) => s.level === level);
+        const slots      = spellSlots[level];
+        const isCantrip  = level === 0;
+
         if (!isCantrip && (!slots || slots.max === 0) && tierSpells.length === 0) return null;
+
         return (
             <div className="spell-tier-block" key={level}>
-                <div className="tier-header"><div className="th-left"><span className="th-level-badge">{isCantrip ? 'C' : level}</span><span className="th-title">{isCantrip ? 'Cantrips' : `Level ${level}`}</span>{!isCantrip && (<div className="slot-bubbles">{Array.from({ length: 4 }).map((_, i) => (<div key={i} className={`slot-bubble ${i < (slots?.used || 0) ? 'used' : ''}`} onClick={() => toggleSlotUsage(level, i)}></div>))}</div>)}</div><button className="tier-add-btn" onClick={() => openSpellModalForLevel(level)}>+</button></div>
-                <div className="tier-list-container">{tierSpells.length === 0 ? <div className="tier-empty">No spells prepared</div> : tierSpells.map(spell => { const isExpanded = expandedSpells[spell.name]; const stats = getSpellStats(spell); return ( <div key={spell.name} className={`spell-row-item ${isExpanded ? 'expanded' : ''}`} onClick={() => toggleSpellExpand(spell.name)}><div className="sr-header"><div className="sr-name">{spell.name}</div><div className={`sr-info-box ${stats.className}`}>{stats.value}</div><div className="sr-info">{spell.duration || "Instant"}</div><div className="sr-info">{spell.range || "Touch"}</div></div>{isExpanded && (<div className="sr-details"><div className="sr-meta-tags"><span>{capitalize(spell.school)}</span><span>{spell.components?.join(', ').toUpperCase()}</span><span>{spell.actionType}</span></div><p>{spell.description}</p><button className="delete-spell-btn" onClick={(e) => { e.stopPropagation(); toggleSpell(spell); }}>Unprepare</button></div>)}</div> ); })}</div>
+                <div className="tier-header">
+                    <div className="th-left">
+                        <span className="th-level-badge">{isCantrip ? 'C' : level}</span>
+                        <span className="th-title">{isCantrip ? t('cantrips') : `${t('level')} ${level}`}</span>
+                        {!isCantrip && (
+                            <div className="slot-bubbles">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`slot-bubble ${i < (slots?.used || 0) ? 'used' : ''}`}
+                                        onClick={() => toggleSlotUsage(level, i)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <button className="tier-add-btn" onClick={() => openSpellModalForLevel(level)}>+</button>
+                </div>
+
+                <div className="tier-list-container">
+                    {tierSpells.length === 0
+                        ? <div className="tier-empty">{t('noSpells')}</div>
+                        : tierSpells.map((spell) => {
+                            const isExpanded = expandedSpells[spell.name];
+                            const spellStats = getSpellStats(spell);
+                            return (
+                                <div
+                                    key={spell.name}
+                                    className={`spell-row-item ${isExpanded ? 'expanded' : ''}`}
+                                    onClick={() => toggleSpellExpand(spell.name)}
+                                >
+                                    <div className="sr-header">
+                                        <div className="sr-name">{spell.name}</div>
+                                        <div className={`sr-info-box ${spellStats.className}`}>{spellStats.value}</div>
+                                        <div className="sr-info">{spell.duration || 'Instant'}</div>
+                                        <div className="sr-info">{spell.range || 'Touch'}</div>
+                                    </div>
+                                    {isExpanded && (
+                                        <div className="sr-details">
+                                            <div className="sr-meta-tags">
+                                                <span>{capitalize(spell.school)}</span>
+                                                <span>{spell.components?.join(', ').toUpperCase()}</span>
+                                                <span>{spell.actionType}</span>
+                                            </div>
+                                            <p>{spell.description}</p>
+                                            <button
+                                                className="delete-spell-btn"
+                                                onClick={(e) => { e.stopPropagation(); toggleSpell(spell); }}
+                                            >
+                                                {t('unprepare')}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
+                    }
+                </div>
             </div>
         );
     };
 
     // ── Derived values ────────────────────────────────────────────────────────
 
+    // XP bar width as a percentage, capped at 100
     const xpPerc = Math.min(((char?.xp ?? 0) / (char?.maxXp ?? 300)) * 100, 100);
 
     const COMBAT_STATS = [
-        { key: 'initiative',  label: 'INITIATIVE'  },
-        { key: 'inspiration', label: 'INSPIRATION' },
-        { key: 'exhaustion',  label: 'EXHAUSTION'  },
+        { key: 'initiative',  label: t('initiative')  },
+        { key: 'inspiration', label: t('inspiration') },
+        { key: 'exhaustion',  label: t('exhaustion')  },
     ];
 
     const TABS = [
@@ -631,17 +797,26 @@ const Character_info = () => {
         { id: 'goals',      label: t('tabGoals')   },
     ];
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    const HUD_STATS = [
+        { key: 'ac',    label: t('ac'),   modalTitle: t('armorClass')  },
+        { key: 'speed', label: t('spd'),  modalTitle: t('speed')       },
+        { key: 'prof',  label: t('prof'), modalTitle: t('proficiency') },
+    ];
+
+    // ── Loading guard ─────────────────────────────────────────────────────────
 
     if (!character || !char || !stats.length) return <p>Loading...</p>;
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     return (
         <div className="char-info-wrapper">
             <Header />
 
-            {/* ── HUD ── */}
+            {/* ── HUD panel ── */}
             <div className="hud-panel">
                 <div className="hud-left">
+                    {/* Avatar — click to replace */}
                     <div className="hud-avatar" onClick={() => fileInputRef.current.click()}>
                         <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImageUpload}/>
                         <img
@@ -649,36 +824,36 @@ const Character_info = () => {
                             onError={(e) => { e.target.src = 'https://via.placeholder.com/150/15100d/ffc400?text=No+Image'; }}
                         />
                     </div>
+
+                    {/* Name / race / class / XP bar */}
                     <div className="hud-info">
-                        <h1 className="editable-text" onClick={() => openGeneric('name', 'Character Name')}>
+                        <h1 className="editable-text" onClick={() => openGeneric('name', t('characterName'))}>
                             {character.name} <span className="edit-icon">✎</span>
                         </h1>
                         <div className="hud-sub">
-                            <span className="editable-text" onClick={() => openGeneric('race', 'Race')}>
-                                {character.race || 'Race'} <span className="edit-icon">✎</span>
+                            <span className="editable-text" onClick={() => openGeneric('race', t('race'))}>
+                                {character.race || t('race')} <span className="edit-icon">✎</span>
                             </span>
                             <span className="hud-sub-separator">•</span>
-                            <span className="editable-text" onClick={() => openGeneric('class_type', 'Class')}>
-                                {character.class_type || 'Class'} <span className="edit-icon">✎</span>
+                            <span className="editable-text" onClick={() => openGeneric('class_type', t('charClass'))}>
+                                {character.class_type || t('charClass')} <span className="edit-icon">✎</span>
                             </span>
                         </div>
                         <div className="hud-xp-bar" onClick={() => toggleModal('xp', true)}>
                             <div className="hud-xp-fill" style={{ width: `${xpPerc}%` }}/>
-                            <span className="hud-xp-text">LVL {character.level} • {char.xp} / {char.maxXp}</span>
+                            <span className="hud-xp-text">{t('lvl')} {character.level} • {char.xp} / {char.maxXp}</span>
                         </div>
                     </div>
                 </div>
 
+                {/* AC / Speed / Prof / Gold / HP */}
                 <div className="hud-stats">
-                    <div className="hud-stat-hex" onClick={() => openGeneric('ac', 'Armor Class')}>
-                        <span className="hex-val">{char.ac}</span><span className="hex-lbl">AC</span>
-                    </div>
-                    <div className="hud-stat-hex" onClick={() => openGeneric('speed', 'Speed')}>
-                        <span className="hex-val">{char.speed}</span><span className="hex-lbl">SPD</span>
-                    </div>
-                    <div className="hud-stat-hex" onClick={() => openGeneric('prof', 'Proficiency')}>
-                        <span className="hex-val">{char.prof}</span><span className="hex-lbl">PROF</span>
-                    </div>
+                    {HUD_STATS.map(({ key, label, modalTitle }) => (
+                        <div key={key} className="hud-stat-hex" onClick={() => openGeneric(key, modalTitle)}>
+                            <span className="hex-val">{char[key]}</span>
+                            <span className="hex-lbl">{label}</span>
+                        </div>
+                    ))}
                     <div className="hud-stat-pill" onClick={() => toggleModal('money', true)}>
                         <span style={{ color: '#ffc107' }}>$</span> {char.wallet.gp}
                     </div>
@@ -689,15 +864,15 @@ const Character_info = () => {
                 </div>
             </div>
 
-            {/* ── Dashboard ── */}
+            {/* ── Main three-column grid ── */}
             <div className="dashboard-grid">
 
-                {/* LEFT: Attributes */}
+                {/* LEFT: Ability scores */}
                 <div className="col-attributes">
-                    {stats.map((s) => <VerticalStat key={s.id} stat={s} onClick={() => openStat(s)}/>)}
+                    {stats.map((s) => <VerticalStat key={s.id} stat={s} t={t} onClick={() => openStat(s)}/>)}
                 </div>
 
-                {/* CENTER: Tabs */}
+                {/* CENTER: Combat quick-stats + tabbed panes */}
                 <div className="col-action-deck">
                     <div className="combat-quick-row">
                         {COMBAT_STATS.map(({ key, label }) => (
@@ -718,7 +893,8 @@ const Character_info = () => {
                         </div>
 
                         <div className="deck-content">
-                            {/* ATTACKS (Dark Theme) */}
+
+                            {/* Attacks tab */}
                             {activeTab === 'attacks' && (
                                 <div className="deck-pane">
                                     <div className="attack-header-labels">
@@ -734,150 +910,157 @@ const Character_info = () => {
                                             <AttackRow key={att.id} attack={att} onUpdate={updateAttack} onRemove={removeAttack}/>
                                         ))}
                                     </div>
+                                    {/* Saved on blur — avoids a PATCH request on every keystroke */}
                                     <div className="sheet-section">
                                         <div className="sheet-label">{t('atkAndSpellcasting')}</div>
-                                        <textarea
-                                            className="sheet-textarea"
-                                            value={attackNotes}
+                                        <textarea className="sheet-textarea" value={attackNotes}
                                             onChange={(e) => setAttackNotes(e.target.value)}
-                                            onBlur={() => updateField('attack_notes', attackNotes)}  // ← додай
-                                        />
+                                            onBlur={() => updateField('attack_notes', attackNotes)}/>
                                     </div>
                                     <div className="sheet-section">
                                         <div className="sheet-label">{t('featuresAndTraits')}</div>
-                                        <textarea
-                                            className="sheet-textarea"
-                                            value={featuresNotes}
+                                        <textarea className="sheet-textarea" value={featuresNotes}
                                             onChange={(e) => setFeaturesNotes(e.target.value)}
-                                            onBlur={() => updateField('features_notes', featuresNotes)}  // ← додай
-                                        />
+                                            onBlur={() => updateField('features_notes', featuresNotes)}/>
                                     </div>
                                 </div>
                             )}
-                            {/* SPELLS (Gold Theme) */}
-                            {activeTab === 'spells' && (<div className="deck-pane spells-container">
-                                <div className="spells-col-header">
-                                    <span className="col-h-name">SPELL</span>
-                                    <span className="col-h-icon"><IconSword/></span>
-                                    <span className="col-h-icon"><IconClock/></span>
-                                    <span className="col-h-icon"><IconTarget/></span>
+
+                            {/* Spells tab */}
+                            {activeTab === 'spells' && (
+                                <div className="deck-pane spells-container">
+                                    <div className="spells-col-header">
+                                        <span className="col-h-name">{t('spellName')}</span>
+                                        <span className="col-h-icon"><IconSword/></span>
+                                        <span className="col-h-icon"><IconClock/></span>
+                                        <span className="col-h-icon"><IconTarget/></span>
+                                    </div>
+                                    {SPELL_TIER_LEVELS.map((lvl) => renderSpellTier(lvl))}
+                                    <button className="settings-btn-long mt-20" onClick={() => openSpellModalForLevel('All')}>
+                                        {t('openGrimoire')}
+                                    </button>
                                 </div>
-                                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(lvl => renderSpellTier(lvl))}
-                                <button className="settings-btn-long mt-20" onClick={() => openSpellModalForLevel('All')}>Open Grimoire (All Spells)</button>
-                            </div>)}
-                            {/* INVENTORY (Dark Theme) */}
+                            )}
+
+                            {/* Inventory tab */}
                             {activeTab === 'inventory' && (
                                 <div className="deck-pane">
                                     <div className="inv-top-row">
                                         <div className="inv-field-group">
-                                            <label>CARRYING CAPACITY</label>
-                                            <input
-                                                type="text" className="inv-input-box"
-                                                value={inventoryCapacity}
+                                            <label>{t('carryingCapacity')}</label>
+                                            <input type="text" className="inv-input-box" value={inventoryCapacity}
+                                                placeholder={t('carryingCapacity')}
                                                 onChange={(e) => setInventoryCapacity(e.target.value)}
-                                                onBlur={() => updateField('inventory_capacity', inventoryCapacity)}
-                                                placeholder="0 / 150 lb"
-                                            />
+                                                onBlur={() => updateField('inventory_capacity', inventoryCapacity)}/>
                                         </div>
                                         <div className="inv-field-group small">
-                                            <label>SIZE</label>
-                                            <select
-                                                className="inv-select-box"
-                                                value={creatureSize}
+                                            <label>{t('size')}</label>
+                                            <select className="inv-select-box" value={creatureSize}
                                                 onChange={(e) => setCreatureSize(e.target.value)}
                                                 onBlur={() => updateField('creature_size', creatureSize)}
                                             >
-                                                <option>Tiny</option>
-                                                <option>Small</option>
-                                                <option>Medium</option>
-                                                <option>Large</option>
-                                                <option>Huge</option>
+                                                {CREATURE_SIZES.map(({ value, key }) => (
+                                                    <option key={value} value={value}>{t(key)}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
                                     <div className="sheet-section">
-                                        <div className="sheet-label">EQUIPMENT</div>
-                                            <textarea className="sheet-textarea large" value={inventory}
-                                                onChange={(e) => setInventory(e.target.value)}
-                                                onBlur={() => updateField('inventory', inventory)}
-                                            />
-                                        </div>
+                                        <div className="sheet-label">{t('equipment')}</div>
+                                        <textarea className="sheet-textarea large" value={inventory}
+                                            placeholder={t('phEquipment')}
+                                            onChange={(e) => setInventory(e.target.value)}
+                                            onBlur={() => updateField('inventory', inventory)}/>
+                                    </div>
                                     <div className="sheet-section">
-                                        <div className="sheet-label">TREASURES</div>
+                                        <div className="sheet-label">{t('treasures')}</div>
                                         <textarea className="sheet-textarea large" value={treasure}
+                                            placeholder={t('phTreasures')}
                                             onChange={(e) => setTreasure(e.target.value)}
-                                            onBlur={() => updateField('treasure', treasure)}
-                                        />
+                                            onBlur={() => updateField('treasure', treasure)}/>
                                     </div>
                                 </div>
                             )}
-                            {/* NOTES (Dark Theme) */}
-                            {activeTab === 'notes' && <div className="deck-pane">
-                                <textarea
-                                    className="epic-textarea"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    onBlur={() => updateField('notes', notes)}
-                                    placeholder="Notes..."
-                                />
-                            </div>}
-                            {/* Appearance (Dark Theme) */}
-                            {activeTab === 'appearance' && <div className="deck-pane">
-                                <textarea className="epic-textarea" value={appearance}
-                                    onChange={(e) => setAppearance(e.target.value)}
-                                    onBlur={() => updateField('appearance', appearance)}
-                                    placeholder="Look..."
-                                />
-                            </div>}
-                            {/* Goals (Dark Theme) */}
-                            {activeTab === 'goals' && <div className="deck-pane">
-                                <textarea className="epic-textarea" value={goals}
-                                    onChange={(e) => setGoals(e.target.value)}
-                                    onBlur={() => updateField('goals', goals)}
-                                    placeholder="Goals..."
-                                />
-                            </div>}
+
+                            {/* Notes tab */}
+                            {activeTab === 'notes' && (
+                                <div className="deck-pane">
+                                    <textarea className="epic-textarea" value={notes} placeholder={t('phNotes')}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        onBlur={() => updateField('notes', notes)}/>
+                                </div>
+                            )}
+
+                            {/* Appearance tab */}
+                            {activeTab === 'appearance' && (
+                                <div className="deck-pane">
+                                    <textarea className="epic-textarea" value={appearance} placeholder={t('phLook')}
+                                        onChange={(e) => setAppearance(e.target.value)}
+                                        onBlur={() => updateField('appearance', appearance)}/>
+                                </div>
+                            )}
+
+                            {/* Goals tab */}
+                            {activeTab === 'goals' && (
+                                <div className="deck-pane">
+                                    <textarea className="epic-textarea" value={goals} placeholder={t('phGoals')}
+                                        onChange={(e) => setGoals(e.target.value)}
+                                        onBlur={() => updateField('goals', goals)}/>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 </div>
 
-                {/* RIGHT: Skills */}
+                {/* RIGHT: Skills panel */}
                 <div className="col-skills-panel">
-                    <div className="panel-header">Skills</div>
+                    <div className="panel-header">{t('skillsTitle')}</div>
                     {skills.map((s, i) => (
-                        <SkillPanel key={`${s.id}-${i}`} skill={s} onClick={() => toggleSkillProficiency(s.n)}/>
+                        <SkillPanel key={`${s.id}-${i}`} skill={s} t={t} onClick={() => toggleSkillProficiency(s.n)}/>
                     ))}
+                    {/* Passive scores — static for now, can be derived from stats later */}
                     <div className="passives-box">
-                        <div className="passive-line"><span className="pv-val">12</span> Perception</div>
-                        <div className="passive-line"><span className="pv-val">14</span> Investigation</div>
-                        <div className="passive-line"><span className="pv-val">10</span> Insight</div>
+                        <div className="passive-line"><span className="pv-val">12</span> {t('perception')}</div>
+                        <div className="passive-line"><span className="pv-val">14</span> {t('investigation')}</div>
+                        <div className="passive-line"><span className="pv-val">10</span> {t('insight')}</div>
                     </div>
                 </div>
+
             </div>
 
             {/* ── Modals ── */}
             <StatModal
                 isOpen={modals.stat} onClose={() => toggleModal('stat', false)}
-                stat={selectedStat}  onSave={updateStat}
+                stat={selectedStat}  onSave={updateStat} t={t}
             />
             <HPCalculatorModal
                 isOpen={modals.hp} onClose={() => toggleModal('hp', false)}
-                currentHP={char.hpCurrent} maxHP={char.hpMax}
+                currentHP={char.hpCurrent} maxHP={char.hpMax} t={t}
                 onSave={(hpCurrent, hpMax) => updateBulk({ hp_current: hpCurrent, hp_max: hpMax })}
             />
             <XPCalculatorModal
                 isOpen={modals.xp} onClose={() => toggleModal('xp', false)}
-                xp={char.xp} maxXp={char.maxXp} level={char.level}
+                xp={char.xp} maxXp={char.maxXp} level={char.level} t={t}
                 onSave={(xp, max_xp, level) => updateBulk({ xp, max_xp, level })}
             />
             <MoneyCalculatorModal
                 isOpen={modals.money} onClose={() => toggleModal('money', false)}
-                wallet={char.wallet}  onSave={(wallet) => updateField('wallet', wallet)}
+                wallet={char.wallet} t={t} onSave={(wallet) => updateField('wallet', wallet)}
             />
             <GenericEditModal
                 isOpen={modals.generic} onClose={() => toggleModal('generic', false)}
-                title={genericData.title} value={char[genericData.key]}
+                title={genericData.title} value={char[genericData.key]} t={t}
                 onSave={(v) => updateField(genericData.key, v)}
+            />
+            <SpellSettingsModal
+                isOpen={modals.spells}
+                onClose={() => toggleModal('spells', false)}
+                learnedSpells={mySpells}
+                onToggleSpell={toggleSpell}
+                initialLevelFilter={modalLevelFilter}
+                t={t}
+                currentSpellsData={activeSpellsDatabase}
             />
 
             <Footer />
