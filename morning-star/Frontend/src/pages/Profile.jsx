@@ -116,7 +116,7 @@ const CharacterCard = ({ char, onOpen }) => {
             <div className="epic-card-frame"/>
             <div
                 className="epic-card-bg"
-                style={{ backgroundImage: `url(${char.avatar})`, backgroundColor: '#1a120b' }}
+                style={{ backgroundImage: `url(http://localhost:8000${char.avatar})`, backgroundColor: '#1a120b' }}
             />
             <div className="epic-card-content">
                 <div className="epic-card-header">
@@ -274,7 +274,7 @@ const Profile = () => {
                                 <CharacterCard
                                     key={char.id}
                                     char={char}
-                                    onOpen={(id) => id ? navigate(`/character/${id}`) : navigate('/character/create')}
+                                    onOpen={(id) => id ? navigate(`/character-info/${id}/edit`) : navigate('/character/create')}
                                 />
                             ))}
                         </div>

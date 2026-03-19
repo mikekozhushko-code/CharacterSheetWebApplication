@@ -60,10 +60,16 @@ export const translations = {
         arcana: "Arcana",
         history: "History",
         investigation: "Investigation",
+        nature: "Nature",
+        religion: "Religion",
+        animalHandling: "Animal Handling",
         insight: "Insight",
         medicine: "Medicine",
         perception: "Perception",
+        survival: "Survival",
         deception: "Deception",
+        intimidation: "Intimidation",
+        performance: "Performance",
         persuasion: "Persuasion",
 
         // --- Бойова панель (Combat Quick Row) ---
@@ -286,10 +292,16 @@ export const translations = {
         arcana: "Магія",
         history: "Історія",
         investigation: "Розслідування",
+        nature: "Природа",
+        religion: "Релігія",
+        animalHandling: "Приборкання тварин",
         insight: "Проникливість",
         medicine: "Медицина",
         perception: "Уважність",
+        survival: "Виживання",
         deception: "Обман",
+        intimidation: "Залякування",
+        performance: "Артистизм",
         persuasion: "Переконання",
 
         // --- Бойова панель (Combat Quick Row) ---

@@ -71,6 +71,12 @@ const SKILL_NAME_TO_KEY = {
     'Perception':      'perception',
     'Deception':       'deception',
     'Persuasion':      'persuasion',
+    'Nature':          'nature',
+    'Religion':        'religion',
+    'Animal Handling': 'animalHandling',
+    'Survival':        'survival',
+    'Intimidation':    'intimidation',
+    'Performance':     'performance',
 };
 
 // Creature size options with translation keys
