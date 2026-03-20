@@ -156,14 +156,21 @@ const Profile = () => {
 
     // ── Fetch profile on mount ────────────────────────────────────────────────
     useEffect(() => {
-        authApi()
-            .get('/profile/')
+        authApi().get('/profile/')
             .then((res) => {
                 setUser(res.data);
+                setTheme(res.data.theme ?? 'tavern');  // ← додай
                 setFormData({ username: res.data.username ?? '', bio: res.data.bio ?? '' });
             })
             .catch((err) => console.error('GET /profile error:', err));
     }, []);
+
+    const changeTheme = (newTheme) => {
+        setTheme(newTheme);
+        authApi()
+            .patch('/profile/', { theme: newTheme })
+            .catch((err) => console.error('Theme update error:', err));
+    };
 
     // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -204,6 +211,19 @@ const Profile = () => {
         localStorage.removeItem('token');
         navigate('/');
     };
+    const handleCreateCharacter = async () => {
+        try {
+            const res = await authApi().post("/characters/create/", {
+                name: "New Character",
+            });
+            const newCharacterId = res.data.id;
+            alert("Character create success");
+            navigate(`/character-info/${newCharacterId}/edit`);
+        } catch (error) {
+            alert(error);
+        }
+    };
+
 
     // ── Loading guard ─────────────────────────────────────────────────────────
     if (!user) return <p>Loading...</p>;
@@ -274,7 +294,10 @@ const Profile = () => {
                                 <CharacterCard
                                     key={char.id}
                                     char={char}
-                                    onOpen={(id) => id ? navigate(`/character-info/${id}/edit`) : navigate('/character/create')}
+                                    onOpen={char.type === 'new'
+                                        ? handleCreateCharacter
+                                        : () => navigate(`/character-info/${char.id}/edit`)
+                                    }
                                 />
                             ))}
                         </div>
@@ -302,10 +325,10 @@ const Profile = () => {
 
                                     <label className="epic-label-small">{t('currentRealm')}</label>
                                     <div className="realm-selector">
-                                        <button className={`realm-btn ${theme === 'tavern'  ? 'active' : ''}`} onClick={() => setTheme('tavern')}  title={t('tavern')}>🍺</button>
-                                        <button className={`realm-btn ${theme === 'forest'  ? 'active' : ''}`} onClick={() => setTheme('forest')}  title={t('forest')}>🌲</button>
-                                        <button className={`realm-btn ${theme === 'crypt'   ? 'active' : ''}`} onClick={() => setTheme('crypt')}   title={t('crypt')}>💀</button>
-                                        <button className={`realm-btn ${theme === 'citadel' ? 'active' : ''}`} onClick={() => setTheme('citadel')} title={t('citadel')}>🏰</button>
+                                        <button className={`realm-btn ${theme === 'tavern'  ? 'active' : ''}`} onClick={() => changeTheme('tavern')}  title={t('tavern')}>🍺</button>
+                                        <button className={`realm-btn ${theme === 'forest'  ? 'active' : ''}`} onClick={() => changeTheme('forest')}  title={t('forest')}>🌲</button>
+                                        <button className={`realm-btn ${theme === 'crypt'   ? 'active' : ''}`} onClick={() => changeTheme('crypt')}   title={t('crypt')}>💀</button>
+                                        <button className={`realm-btn ${theme === 'citadel' ? 'active' : ''}`} onClick={() => changeTheme('citadel')} title={t('citadel')}>🏰</button>
                                     </div>
                                 </div>
 

@@ -41,7 +41,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Profile
-        fields = ('username', 'email', 'bio', 'avatar', 'created_at', 'characters')
+        fields = ('username', 'email', 'bio', 'avatar', "theme", 'created_at', 'characters')
 
     def get_characters(self, obj):
         chars = Character.objects.filter(owner=obj.user)

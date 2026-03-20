@@ -49,6 +49,24 @@ function App() {
         </PrivateRoute>
       } />
 
+      <Route path="/news" element={
+        <PrivateRoute>
+          <News />
+        </PrivateRoute>
+      } />
+
+      <Route path="/about" element={
+        <PrivateRoute>
+          <About />
+        </PrivateRoute>
+      } />
+
+      <Route path="/main" element={
+        <PrivateRoute>
+          <Main />
+        </PrivateRoute>
+      } />
+
       <Route path="/character-info/:id/edit/" element={
         <PrivateRoute>
           <Character_info />

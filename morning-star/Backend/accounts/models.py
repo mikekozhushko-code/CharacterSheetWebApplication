@@ -11,6 +11,7 @@ class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
     bio = models.TextField(blank=True, null=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    theme = models.CharField(max_length=20, default='tavern')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
