@@ -15,31 +15,131 @@ const getMaskedEmail = (email) => {
     return `${name.substring(0, 3)}***@${domain}`;
 };
 
+// ─── Share Modal ──────────────────────────────────────────────────────────────
+
+const DURATION_OPTIONS = [
+    { value: '1h',  label: '1 Hour'   },
+    { value: '24h', label: '24 Hours' },
+    { value: '7d',  label: '7 Days'   },
+    { value: '30d', label: '30 Days'  },
+];
+
+/** Modal for generating a shareable link with view or edit permissions. */
+const ShareModal = ({ isOpen, onClose, characterId }) => {
+    const [permission, setPermission]     = useState('view');
+    const [duration, setDuration]         = useState('24h');
+    const [generatedUrl, setGeneratedUrl] = useState(null);
+    const [isLoading, setIsLoading]       = useState(false);
+    const [copied, setCopied]             = useState(false);
+    const [error, setError]               = useState('');
+
+    // Reset state every time the modal opens
+    useEffect(() => {
+        if (isOpen) { setGeneratedUrl(null); setCopied(false); setError(''); }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    const handleGenerate = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            const res = await authApi().post(`/characters/${characterId}/share/`, {
+                permission,
+                duration,
+            });
+            const fullUrl = `${window.location.origin}/shared/${res.data.token}`;
+            setGeneratedUrl(fullUrl);
+        } catch (err) {
+            setError('Failed to generate link. Try again.');
+            console.error('Share token error:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(generatedUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="epic-modal-overlay" onClick={onClose}>
+            <div className="epic-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="epic-modal-header">
+                    <h3>🔗 Share Character</h3>
+                    <button className="epic-close-btn" onClick={onClose}>×</button>
+                </div>
+
+                <div className="epic-modal-body">
+                    {/* Duration selector */}
+                    <div className="epic-field-group">
+                        <label>Link expires in</label>
+                        <select
+                            className="epic-input"
+                            value={duration}
+                            onChange={(e) => setDuration(e.target.value)}
+                        >
+                            {DURATION_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Generated URL display */}
+                    {generatedUrl && (
+                        <div className="share-url-box">
+                            <input
+                                type="text" readOnly
+                                className="epic-input"
+                                value={generatedUrl}
+                            />
+                            <button className="epic-btn-save" onClick={handleCopy}>
+                                {copied ? '✓ Copied!' : 'Copy'}
+                            </button>
+                        </div>
+                    )}
+
+                    {error && <p className="epic-error">{error}</p>}
+                </div>
+
+                <div className="epic-modal-footer">
+                    {!generatedUrl
+                        ? <button className="epic-btn-save" onClick={handleGenerate} disabled={isLoading}>
+                            {isLoading ? '...' : 'Generate Link'}
+                          </button>
+                        : <button className="epic-btn-outline" onClick={() => setGeneratedUrl(null)}>
+                            Generate New
+                          </button>
+                    }
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ─── Change Password Modal ────────────────────────────────────────────────────
 
 const ChangePasswordModal = ({ isOpen, onClose, email }) => {
     const { t } = useLanguage();
-    const [step, setStep] = useState(1);
-    const [code, setCode]           = useState('');
-    const [newPass, setNewPass]     = useState('');
+    const [step, setStep]               = useState(1);
+    const [code, setCode]               = useState('');
+    const [newPass, setNewPass]         = useState('');
     const [confirmPass, setConfirmPass] = useState('');
-    const [error, setError]         = useState('');
+    const [error, setError]             = useState('');
 
     const handleClose = () => { setStep(1); setCode(''); setNewPass(''); setConfirmPass(''); setError(''); onClose(); };
 
     const handleVerify = () => {
         if (!code.trim()) { setError('Enter the verification code'); return; }
-        // TODO: call verify endpoint
-        setError('');
-        setStep(2);
+        setError(''); setStep(2);
     };
 
     const handleUpdatePassword = () => {
         if (newPass !== confirmPass) { setError('Passwords do not match'); return; }
         if (newPass.length < 6)     { setError('Password must be at least 6 characters'); return; }
-        // TODO: call update password endpoint
-        setError('');
-        handleClose();
+        setError(''); handleClose();
     };
 
     if (!isOpen) return null;
@@ -60,11 +160,8 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
                             </p>
                             <div className="epic-field-group">
                                 <label>{t('verificationCode')}</label>
-                                <input
-                                    type="text" placeholder="XB-99-21"
-                                    className="epic-input text-center"
-                                    value={code} onChange={(e) => setCode(e.target.value)}
-                                />
+                                <input type="text" placeholder="XB-99-21" className="epic-input text-center"
+                                    value={code} onChange={(e) => setCode(e.target.value)}/>
                             </div>
                         </div>
                     ) : (
@@ -96,7 +193,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }) => {
 
 // ─── Character Card ───────────────────────────────────────────────────────────
 
-const CharacterCard = ({ char, onOpen }) => {
+const CharacterCard = ({ char, onOpen, onShare }) => {
     const { t } = useLanguage();
 
     // "New character" slot
@@ -131,6 +228,14 @@ const CharacterCard = ({ char, onOpen }) => {
                         <button className="epic-btn-play" onClick={() => onOpen(char.id)}>
                             {t('openSheet')}
                         </button>
+                        {/* Share button — stops propagation to avoid opening the sheet */}
+                        <button
+                            className="epic-btn-share"
+                            onClick={(e) => { e.stopPropagation(); onShare(char.id); }}
+                            title="Share character"
+                        >
+                            🔗
+                        </button>
                     </div>
                 </div>
             </div>
@@ -146,40 +251,40 @@ const Profile = () => {
     const avatarInputRef  = useRef(null);
 
     // ── State ─────────────────────────────────────────────────────────────────
-    const [user, setUser]                       = useState(null);
-    const [formData, setFormData]               = useState({ username: '', bio: '' });
-    const [activeTab, setActiveTab]             = useState('heroes');
-    const [isPassModalOpen, setPassModalOpen]   = useState(false);
-    const [isEditingEmail, setIsEditingEmail]   = useState(false);
-    const [theme, setTheme]                     = useState('tavern');
-    const [isSaving, setIsSaving]               = useState(false);
+    const [user, setUser]                         = useState(null);
+    const [formData, setFormData]                 = useState({ username: '', bio: '' });
+    const [activeTab, setActiveTab]               = useState('heroes');
+    const [isPassModalOpen, setPassModalOpen]     = useState(false);
+    const [isEditingEmail, setIsEditingEmail]     = useState(false);
+    const [theme, setTheme]                       = useState('tavern');
+    const [isSaving, setIsSaving]                 = useState(false);
+    const [shareModalOpen, setShareModalOpen]     = useState(false);
+    const [shareCharacterId, setShareCharacterId] = useState(null);
 
     // ── Fetch profile on mount ────────────────────────────────────────────────
     useEffect(() => {
         authApi().get('/profile/')
             .then((res) => {
                 setUser(res.data);
-                setTheme(res.data.theme ?? 'tavern');  // ← додай
+                setTheme(res.data.theme ?? 'tavern');
                 setFormData({ username: res.data.username ?? '', bio: res.data.bio ?? '' });
             })
             .catch((err) => console.error('GET /profile error:', err));
     }, []);
 
+    // ── Handlers ──────────────────────────────────────────────────────────────
+
     const changeTheme = (newTheme) => {
         setTheme(newTheme);
-        authApi()
-            .patch('/profile/', { theme: newTheme })
+        authApi().patch('/profile/', { theme: newTheme })
             .catch((err) => console.error('Theme update error:', err));
     };
-
-    // ── Handlers ──────────────────────────────────────────────────────────────
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    /** Saves username and bio via PATCH. */
     const saveChanges = async () => {
         setIsSaving(true);
         try {
@@ -194,7 +299,6 @@ const Profile = () => {
         }
     };
 
-    /** Uploads a new avatar image. */
     const handleAvatarUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -206,29 +310,29 @@ const Profile = () => {
             .catch((err) => console.error('Avatar upload error:', err));
     };
 
-    /** Logs out the user and redirects to home. */
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/');
     };
+
     const handleCreateCharacter = async () => {
         try {
-            const res = await authApi().post("/characters/create/", {
-                name: "New Character",
-            });
-            const newCharacterId = res.data.id;
-            alert("Character create success");
-            navigate(`/character-info/${newCharacterId}/edit`);
+            const res = await authApi().post('/characters/create/', { name: 'New Character' });
+            navigate(`/character-info/${res.data.id}/edit`);
         } catch (error) {
-            alert(error);
+            console.error('Create character error:', error);
         }
     };
 
+    /** Opens the share modal for a specific character. */
+    const handleShare = (characterId) => {
+        setShareCharacterId(characterId);
+        setShareModalOpen(true);
+    };
 
     // ── Loading guard ─────────────────────────────────────────────────────────
     if (!user) return <p>Loading...</p>;
 
-    // Append "new character" slot to the end of the characters list
     const characters = [...(user.characters ?? []), { id: 0, type: 'new' }];
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -257,29 +361,20 @@ const Profile = () => {
                             }
                         </div>
                     </div>
-
                     <div className="epic-user-info">
                         <h1 className="epic-username">{user.username}</h1>
                         <p className="epic-bio">"{user.bio || '...'}"</p>
-                        <p className="epic-joined-date">
-                            Est. {new Date(user.created_at).getFullYear()}
-                        </p>
+                        <p className="epic-joined-date">Est. {new Date(user.created_at).getFullYear()}</p>
                     </div>
                 </div>
 
                 {/* ── Tab navigation ── */}
                 <div className="epic-nav-bar">
                     <div className="nav-line"/>
-                    <button
-                        className={`epic-nav-btn ${activeTab === 'heroes' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('heroes')}
-                    >
+                    <button className={`epic-nav-btn ${activeTab === 'heroes' ? 'active' : ''}`} onClick={() => setActiveTab('heroes')}>
                         {t('myHeroes')}
                     </button>
-                    <button
-                        className={`epic-nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('settings')}
-                    >
+                    <button className={`epic-nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
                         {t('settings')}
                     </button>
                     <div className="nav-line"/>
@@ -298,6 +393,7 @@ const Profile = () => {
                                         ? handleCreateCharacter
                                         : () => navigate(`/character-info/${char.id}/edit`)
                                     }
+                                    onShare={handleShare}
                                 />
                             ))}
                         </div>
@@ -307,22 +403,16 @@ const Profile = () => {
                     {activeTab === 'settings' && (
                         <div className="epic-settings-panel">
                             <h2 className="settings-title">{t('accountScrolls')}</h2>
-
                             <div className="settings-grid">
 
                                 {/* Avatar + theme */}
                                 <div className="settings-section avatar-section">
                                     <div className="settings-avatar-preview">
-                                        <img src={user.avatar} alt="Avatar"
-                                            onError={(e) => { e.target.style.display = 'none'; }}/>
+                                        <img src={user.avatar} alt="Avatar" onError={(e) => { e.target.style.display = 'none'; }}/>
                                     </div>
-                                    <button
-                                        className="epic-btn-outline mb-20"
-                                        onClick={() => avatarInputRef.current.click()}
-                                    >
+                                    <button className="epic-btn-outline mb-20" onClick={() => avatarInputRef.current.click()}>
                                         {t('changePortrait')}
                                     </button>
-
                                     <label className="epic-label-small">{t('currentRealm')}</label>
                                     <div className="realm-selector">
                                         <button className={`realm-btn ${theme === 'tavern'  ? 'active' : ''}`} onClick={() => changeTheme('tavern')}  title={t('tavern')}>🍺</button>
@@ -336,74 +426,53 @@ const Profile = () => {
                                 <div className="settings-section form-section">
                                     <div className="epic-field-group">
                                         <label>{t('advName')}</label>
-                                        <input
-                                            type="text" name="username"
-                                            className="epic-input"
-                                            value={formData.username}
-                                            onChange={handleInputChange}
-                                        />
+                                        <input type="text" name="username" className="epic-input"
+                                            value={formData.username} onChange={handleInputChange}/>
                                     </div>
-
                                     <div className="epic-field-group">
                                         <label>{t('emailScroll')}</label>
                                         <div className="email-input-wrapper">
                                             {isEditingEmail ? (
-                                                <input
-                                                    type="email" name="email"
-                                                    className="epic-input" autoFocus
-                                                    value={formData.email ?? ''}
-                                                    onChange={handleInputChange}
-                                                />
+                                                <input type="email" name="email" className="epic-input" autoFocus
+                                                    value={formData.email ?? ''} onChange={handleInputChange}/>
                                             ) : (
-                                                <input
-                                                    type="text"
-                                                    className="epic-input disabled"
-                                                    value={getMaskedEmail(user.email)}
-                                                    disabled
-                                                />
+                                                <input type="text" className="epic-input disabled"
+                                                    value={getMaskedEmail(user.email)} disabled/>
                                             )}
-                                            <button
-                                                className="epic-icon-btn"
-                                                onClick={() => setIsEditingEmail((v) => !v)}
-                                            >
+                                            <button className="epic-icon-btn" onClick={() => setIsEditingEmail((v) => !v)}>
                                                 {isEditingEmail ? '✖' : '✎'}
                                             </button>
                                         </div>
                                     </div>
-
                                     <div className="epic-field-group">
                                         <label>{t('legendAbout')}</label>
-                                        <textarea
-                                            name="bio"
-                                            className="epic-input epic-textarea"
-                                            value={formData.bio}
-                                            onChange={handleInputChange}
-                                        />
+                                        <textarea name="bio" className="epic-input epic-textarea"
+                                            value={formData.bio} onChange={handleInputChange}/>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="settings-footer">
-                                <button className="epic-btn-outline" onClick={() => setPassModalOpen(true)}>
-                                    {t('changePass')}
-                                </button>
+                                <button className="epic-btn-outline" onClick={() => setPassModalOpen(true)}>{t('changePass')}</button>
                                 <div className="spacer"/>
                                 <button className="epic-btn-save" onClick={saveChanges} disabled={isSaving}>
                                     {isSaving ? '...' : t('saveChanges')}
                                 </button>
                             </div>
-
                             <div className="settings-danger-zone">
-                                <button className="epic-btn-danger" onClick={handleLogout}>
-                                    {t('logOut')}
-                                </button>
+                                <button className="epic-btn-danger" onClick={handleLogout}>{t('logOut')}</button>
                             </div>
                         </div>
                     )}
-
                 </div>
             </div>
 
+            {/* ── Modals ── */}
+            <ShareModal
+                isOpen={shareModalOpen}
+                onClose={() => setShareModalOpen(false)}
+                characterId={shareCharacterId}
+            />
             <ChangePasswordModal
                 isOpen={isPassModalOpen}
                 onClose={() => setPassModalOpen(false)}

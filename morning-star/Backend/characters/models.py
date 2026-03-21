@@ -87,3 +87,28 @@ class Character(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.owner.username})"
+
+import uuid
+from datetime import timedelta
+from django.utils import timezone
+
+class ShareToken(models.Model):
+    PERMISSION_CHOICES = [('view', 'View'), ('edit', 'Edit')]
+    DURATION_CHOICES   = [
+        ('1h',  '1 Hour'),
+        ('24h', '24 Hours'),
+        ('7d',  '7 Days'),
+        ('30d', '30 Days'),
+    ]
+
+    character  = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='share_tokens')
+    token      = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    permission = models.CharField(max_length=10, choices=PERMISSION_CHOICES, default='view')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"{self.character.name} — {self.permission} — expires {self.expires_at}"

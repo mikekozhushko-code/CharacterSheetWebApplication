@@ -13,6 +13,7 @@ import Main from './pages/Main';
 import About from './pages/About';
 import Profile from './pages/Profile';
 import PrivateRoute from './components/PrivateRoute';
+import SharedCharacter from './pages/SharedCharacter.jsx';
 import HomePage from './pages/HomePage.jsx'
 import PublicRoute from './components/PublicRoute.jsx';
 
@@ -70,6 +71,12 @@ function App() {
       <Route path="/character-info/:id/edit/" element={
         <PrivateRoute>
           <Character_info />
+        </PrivateRoute>
+      } />
+
+      <Route path="/shared/:token" element={
+        <PrivateRoute>
+          <SharedCharacter />
         </PrivateRoute>
       } />
 
