@@ -60,10 +60,12 @@ INSTALLED_APPS = [
     # Import
     "corsheaders",
     "rest_framework",
+    "channels",
 
     # Local
     "accounts",
     "characters",
+    "table",
 ]
 
 MIDDLEWARE = [
@@ -78,6 +80,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+ASGI_APPLICATION = 'config.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 CORS_ALLOW_ALL_ORIGINS = True 
 

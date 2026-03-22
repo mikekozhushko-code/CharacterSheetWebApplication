@@ -16,6 +16,8 @@ import PrivateRoute from './components/PrivateRoute';
 import SharedCharacter from './pages/SharedCharacter.jsx';
 import HomePage from './pages/HomePage.jsx'
 import PublicRoute from './components/PublicRoute.jsx';
+import GameLobby from './pages/Gamelobby.jsx';
+import GameTable from './pages/GameTable.jsx';
 
 
 function App() {
@@ -30,6 +32,17 @@ function App() {
         <PublicRoute>
           <LoginPage />
         </PublicRoute>
+      } />
+
+      <Route path="/table" element={
+        <PrivateRoute>
+            <GameLobby />
+        </PrivateRoute>
+      } />
+      <Route path="/table/:code" element={
+          <PrivateRoute>
+              <GameTable />
+          </PrivateRoute>
       } />
 
       <Route path="/registration" element={
