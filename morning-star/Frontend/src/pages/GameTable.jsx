@@ -4,39 +4,51 @@ import { authApi } from '../Api.jsx';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const WS_BASE    = 'ws://localhost:8000';
-const DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
+const WS_BASE      = 'ws://localhost:8000';
+const DICE_TYPES   = [4, 6, 8, 10, 12, 20, 100];
+const ZOOM_MIN     = 0.2;
+const ZOOM_MAX     = 3;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const rollDice = (sides) => Math.floor(Math.random() * sides) + 1;
+
+const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
 // ─── GameTable ────────────────────────────────────────────────────────────────
 
 const GameTable = () => {
     const { code } = useParams();
     const navigate = useNavigate();
-    const fileInputRef = useRef(null);
-
-    // WebSocket refs — using refs so cleanup works correctly with StrictMode
-    const wsRef      = useRef(null);
-    const isMountedRef = useRef(true);
+    const fileInputRef   = useRef(null);
+    const canvasRef      = useRef(null);
+    const viewportRef    = useRef(null);
+    const isMountedRef   = useRef(true);
+    const wsRef          = useRef(null);
 
     // ── Session state ─────────────────────────────────────────────────────────
     const [session, setSession]         = useState(null);
     const [isMaster, setIsMaster]       = useState(false);
     const [isConnected, setIsConnected] = useState(false);
 
-    // ── Canvas objects state ──────────────────────────────────────────────────
+    // ── Canvas objects ────────────────────────────────────────────────────────
     const [objects, setObjects]       = useState([]);
     const [selectedId, setSelectedId] = useState(null);
-    const [dragging, setDragging]     = useState(null);
-    const [resizing, setResizing]     = useState(null);
+    const [dragging, setDragging]     = useState(null); // { id, offsetX, offsetY }
+    const [resizing, setResizing]     = useState(null); // { id, startX, startY, startW, startH }
 
-    // ── Dice log state ────────────────────────────────────────────────────────
+    // ── Camera (pan + zoom) ───────────────────────────────────────────────────
+    const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 1 });
+    const isPanning    = useRef(false);
+    const lastPanPos   = useRef({ x: 0, y: 0 });
+    // Keep a ref of camera for use in mouse handlers without stale closure
+    const cameraRef    = useRef(camera);
+    useEffect(() => { cameraRef.current = camera; }, [camera]);
+
+    // ── Dice log ──────────────────────────────────────────────────────────────
     const [diceLog, setDiceLog] = useState([]);
 
-    // ── Fetch session info ────────────────────────────────────────────────────
+    // ── Fetch session ─────────────────────────────────────────────────────────
     useEffect(() => {
         const token   = localStorage.getItem('token');
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -52,13 +64,12 @@ const GameTable = () => {
             .catch((err) => console.error('GET /table error:', err));
     }, [code]);
 
-    // ── Server message handler (stable ref — avoids stale closure in WS) ─────
+    // ── Server message handler ────────────────────────────────────────────────
     const handleServerMessage = useCallback((data) => {
         switch (data.type) {
             case 'state':
                 if (data.payload.tokens?.length) setObjects(data.payload.tokens);
                 break;
-
             case 'move_token':
                 setObjects((prev) => prev.map((obj) =>
                     obj.id === data.payload.id
@@ -66,66 +77,42 @@ const GameTable = () => {
                         : obj
                 ));
                 break;
-
             case 'add_image':
                 setObjects(data.payload.tokens);
                 break;
-
             case 'delete_image':
                 setObjects(data.payload.tokens);
                 break;
-
             case 'roll_dice':
                 setDiceLog((prev) => [data.payload, ...prev].slice(0, 50));
                 break;
-
             default:
                 break;
         }
     }, []);
 
-    // Store handler in ref so WS onmessage always calls the latest version
     const handleServerMessageRef = useRef(handleServerMessage);
-    useEffect(() => {
-        handleServerMessageRef.current = handleServerMessage;
-    }, [handleServerMessage]);
+    useEffect(() => { handleServerMessageRef.current = handleServerMessage; }, [handleServerMessage]);
 
-    // ── WebSocket connection ──────────────────────────────────────────────────
+    // ── WebSocket ─────────────────────────────────────────────────────────────
     useEffect(() => {
         isMountedRef.current = true;
         const token = localStorage.getItem('token');
         const ws    = new WebSocket(`${WS_BASE}/ws/table/${code}/?token=${token}`);
         wsRef.current = ws;
 
-        ws.onopen = () => {
-            if (!isMountedRef.current) return;
-            setIsConnected(true);
-        };
+        ws.onopen    = () => { if (isMountedRef.current) setIsConnected(true); };
+        ws.onmessage = (e) => { if (isMountedRef.current) handleServerMessageRef.current(JSON.parse(e.data)); };
+        ws.onclose   = () => { if (isMountedRef.current) setIsConnected(false); };
+        ws.onerror   = (err) => console.error('WebSocket error:', err);
 
-        ws.onmessage = (e) => {
-            if (!isMountedRef.current) return;
-            const data = JSON.parse(e.data);
-            handleServerMessageRef.current(data);
-        };
-
-        ws.onclose = () => {
-            if (!isMountedRef.current) return;
-            setIsConnected(false);
-        };
-
-        ws.onerror = (err) => console.error('WebSocket error:', err);
-
-        // Cleanup — called on unmount or when code changes
         return () => {
             isMountedRef.current = false;
-            ws.onopen    = null;
-            ws.onmessage = null;
-            ws.onclose   = null;
+            ws.onopen = ws.onmessage = ws.onclose = null;
             ws.close();
         };
-    }, [code]); // Only re-connect when session code changes
+    }, [code]);
 
-    // ── WebSocket send helper ─────────────────────────────────────────────────
     const wsSend = useCallback((type, payload) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({ type, payload }));
@@ -134,10 +121,9 @@ const GameTable = () => {
 
     // ── Dice roller ───────────────────────────────────────────────────────────
     const handleRoll = (sides) => {
-        const result = rollDice(sides);
         wsSend('roll_dice', {
             dice:   `d${sides}`,
-            result,
+            result: rollDice(sides),
             time:   new Date().toLocaleTimeString(),
         });
     };
@@ -149,11 +135,9 @@ const GameTable = () => {
         const reader = new FileReader();
         reader.onload = (ev) => {
             const newObj = {
-                id:    Date.now(),
-                type:  'image',
-                x:     100, y: 100, w: 200, h: 150,
-                src:   ev.target.result,
-                label: file.name,
+                id: Date.now(), type: 'image',
+                x: 200, y: 200, w: 200, h: 150,
+                src: ev.target.result, label: file.name,
             };
             setObjects((prev) => {
                 const updated = [...prev, newObj];
@@ -168,11 +152,9 @@ const GameTable = () => {
     // ── Add token ─────────────────────────────────────────────────────────────
     const handleAddToken = () => {
         const newToken = {
-            id:    Date.now(),
-            type:  'token',
-            x:     150, y: 150, w: 60, h: 60,
-            src:   null,
-            label: 'Token',
+            id: Date.now(), type: 'token',
+            x: 200, y: 200, w: 60, h: 60,
+            src: null, label: 'Token',
         };
         setObjects((prev) => {
             const updated = [...prev, newToken];
@@ -192,8 +174,73 @@ const GameTable = () => {
         setSelectedId(null);
     };
 
-    // ── Canvas mouse events ───────────────────────────────────────────────────
-    const canvasRef = useRef(null);
+    // ── Camera helpers ────────────────────────────────────────────────────────
+
+    /** Convert viewport (screen) coords to canvas coords accounting for pan/zoom. */
+    const toCanvasCoords = useCallback((clientX, clientY) => {
+        const rect  = viewportRef.current.getBoundingClientRect();
+        const cam   = cameraRef.current;
+        return {
+            x: (clientX - rect.left - cam.x) / cam.zoom,
+            y: (clientY - rect.top  - cam.y) / cam.zoom,
+        };
+    }, []);
+
+    // ── Zoom on wheel ─────────────────────────────────────────────────────────
+    const onWheelRef = useRef(null);
+    onWheelRef.current = (e) => {
+        e.preventDefault();
+        const rect    = viewportRef.current.getBoundingClientRect();
+        const cam     = cameraRef.current;
+        const factor  = e.deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = clamp(cam.zoom * factor, ZOOM_MIN, ZOOM_MAX);
+
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const newX   = mouseX - (mouseX - cam.x) * (newZoom / cam.zoom);
+        const newY   = mouseY - (mouseY - cam.y) * (newZoom / cam.zoom);
+
+
+        setCamera({ x: newX, y: newY, zoom: newZoom });
+    };
+
+    // Attach wheel listener with { passive: false } so preventDefault works
+    useEffect(() => {
+        // Wait until session is loaded and viewport is mounted
+        if (!session) return;
+        const el = viewportRef.current;
+        if (!el) return;
+        const handler = (e) => onWheelRef.current(e);
+        el.addEventListener('wheel', handler, { passive: false });
+        return () => el.removeEventListener('wheel', handler);
+    }, [session]); // ← додай session в залежності
+
+    // ── Pan on middle mouse button ────────────────────────────────────────────
+    const onViewportMouseDown = (e) => {
+        if (e.button === 1) {
+            e.preventDefault();
+            isPanning.current = true;
+            lastPanPos.current = { x: e.clientX, y: e.clientY };
+        }
+    };
+
+    const onViewportMouseMove = (e) => {
+        if (isPanning.current) {
+            const dx = e.clientX - lastPanPos.current.x;
+            const dy = e.clientY - lastPanPos.current.y;
+            lastPanPos.current = { x: e.clientX, y: e.clientY };
+            setCamera((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
+        }
+        // Forward to canvas drag/resize handler
+        onMouseMove(e);
+    };
+
+    const onViewportMouseUp = (e) => {
+        if (e.button === 1) isPanning.current = false;
+        onMouseUp();
+    };
+
+    // ── Object drag / resize ──────────────────────────────────────────────────
 
     const getObjectAt = (x, y) => {
         for (let i = objects.length - 1; i >= 0; i--) {
@@ -204,15 +251,14 @@ const GameTable = () => {
     };
 
     const isResizeHandle = (obj, x, y) => {
-        const s = 10;
+        const s = 12 / cameraRef.current.zoom; // handle size scales with zoom
         return x >= obj.x + obj.w - s && x <= obj.x + obj.w + s / 2
             && y >= obj.y + obj.h - s && y <= obj.y + obj.h + s / 2;
     };
 
     const onMouseDown = (e) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        if (e.button !== 0) return; // left click only
+        const { x, y } = toCanvasCoords(e.clientX, e.clientY);
         const obj = getObjectAt(x, y);
 
         if (!obj) { setSelectedId(null); return; }
@@ -226,9 +272,8 @@ const GameTable = () => {
     };
 
     const onMouseMove = (e) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        if (!dragging && !resizing) return;
+        const { x, y } = toCanvasCoords(e.clientX, e.clientY);
 
         if (resizing) {
             const dx = x - resizing.startX;
@@ -268,8 +313,6 @@ const GameTable = () => {
         <p style={{ color: '#e0d6c8', padding: '40px', textAlign: 'center' }}>Loading...</p>
     );
 
-    console.log(session)
-
     return (
         <div style={wrapperStyle}>
 
@@ -284,6 +327,10 @@ const GameTable = () => {
                         {isConnected ? '● Connected' : '○ Disconnected'}
                     </span>
                     {isMaster && <span style={dmBadgeStyle}>👑 DM</span>}
+                    {/* Zoom indicator */}
+                    <span style={{ fontSize: '11px', color: '#888' }}>
+                        {Math.round(camera.zoom * 100)}%
+                    </span>
                 </div>
                 <button onClick={() => navigate('/table')} style={btnDangerStyle}>Leave</button>
             </div>
@@ -293,45 +340,62 @@ const GameTable = () => {
 
                 {/* ── Canvas area ── */}
                 <div style={canvasWrapperStyle}>
+
+                    {/* Viewport — fixed size, clips the canvas */}
                     <div
-                        ref={canvasRef}
-                        style={canvasStyle}
-                        onMouseDown={onMouseDown}
-                        onMouseMove={onMouseMove}
-                        onMouseUp={onMouseUp}
-                        onMouseLeave={onMouseUp}
+                        ref={viewportRef}
+                        style={viewportStyle}
+                        onMouseDown={onViewportMouseDown}
+                        onMouseMove={onViewportMouseMove}
+                        onMouseUp={onViewportMouseUp}
+                        onMouseLeave={() => { isPanning.current = false; onMouseUp(); }}
                     >
-                        {objects.map((obj) => (
-                            <div
-                                key={obj.id}
-                                style={{
-                                    position:        'absolute',
-                                    left:            obj.x,
-                                    top:             obj.y,
-                                    width:           obj.w,
-                                    height:          obj.h,
-                                    border:          selectedId === obj.id ? '2px solid #ffc400' : '1px solid #3a2e1e',
-                                    borderRadius:    obj.type === 'token' ? '50%' : '4px',
-                                    overflow:        'hidden',
-                                    cursor:          'grab',
-                                    userSelect:      'none',
-                                    backgroundColor: obj.type === 'token' ? '#2a1f00' : 'transparent',
-                                }}
-                            >
-                                {obj.src && (
-                                    <img src={obj.src} alt={obj.label}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
-                                    />
-                                )}
-                                {obj.type === 'token' && !obj.src && (
-                                    <div style={tokenLabelStyle}>{obj.label}</div>
-                                )}
-                                {/* Resize handle — master only */}
-                                {isMaster && selectedId === obj.id && (
-                                    <div style={resizeHandleStyle}/>
-                                )}
-                            </div>
-                        ))}
+                        {/* Inner canvas — transformed via pan/zoom */}
+                        <div
+                            ref={canvasRef}
+                            style={{
+                                position:        'absolute',
+                                width:           "100%",
+                                height:          "100%",
+                                backgroundColor: 'transparent',
+                                transform:       `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
+                                transformOrigin: '0 0',
+                                cursor:          isPanning.current ? 'grabbing' : 'default',
+                                userSelect:      'none',
+                            }}
+                            onMouseDown={onMouseDown}
+                        >
+                            {objects.map((obj) => (
+                                <div
+                                    key={obj.id}
+                                    style={{
+                                        position:        'absolute',
+                                        left:            obj.x,
+                                        top:             obj.y,
+                                        width:           obj.w,
+                                        height:          obj.h,
+                                        border:          selectedId === obj.id ? '2px solid #ffc400' : '1px solid #3a2e1e',
+                                        borderRadius:    obj.type === 'token' ? '50%' : '4px',
+                                        overflow:        'hidden',
+                                        cursor:          'grab',
+                                        backgroundColor: obj.type === 'token' ? '#2a1f00' : 'transparent',
+                                    }}
+                                >
+                                    {obj.src && (
+                                        <img src={obj.src} alt={obj.label}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+                                        />
+                                    )}
+                                    {obj.type === 'token' && !obj.src && (
+                                        <div style={tokenLabelStyle}>{obj.label}</div>
+                                    )}
+                                    {/* Resize handle — master only */}
+                                    {isMaster && selectedId === obj.id && (
+                                        <div style={resizeHandleStyle}/>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* ── Toolbar — master only ── */}
@@ -354,6 +418,12 @@ const GameTable = () => {
                             >
                                 🗑️ Delete
                             </button>
+                            {/* Zoom controls */}
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <button style={toolBtnStyle} onClick={() => setCamera((c) => ({ ...c, zoom: clamp(c.zoom * 1.2, ZOOM_MIN, ZOOM_MAX) }))}>＋</button>
+                                <button style={toolBtnStyle} onClick={() => setCamera({ x: 0, y: 0, zoom: 1 })}>Reset</button>
+                                <button style={toolBtnStyle} onClick={() => setCamera((c) => ({ ...c, zoom: clamp(c.zoom * 0.8, ZOOM_MIN, ZOOM_MAX) }))}>－</button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -433,12 +503,11 @@ const canvasWrapperStyle = {
     display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden',
 };
 
-const canvasStyle = {
-    flex: 1, position: 'relative',
-    backgroundColor: '#111',
+const viewportStyle = {
+    flex: 1, overflow: 'hidden', position: 'relative',
+    backgroundColor: '#0a0a0a',
     backgroundImage: 'radial-gradient(circle, #1a1510 1px, transparent 1px)',
-    backgroundSize: '30px 30px',
-    overflow: 'hidden', cursor: 'default',
+    backgroundSize:  '30px 30px',
 };
 
 const tokenLabelStyle = {
@@ -455,7 +524,8 @@ const resizeHandleStyle = {
 
 const toolbarStyle = {
     display: 'flex', gap: '8px', padding: '10px 16px',
-    backgroundColor: '#1a1510', borderTop: '1px solid #3a2e1e', flexShrink: 0,
+    backgroundColor: '#1a1510', borderTop: '1px solid #3a2e1e',
+    flexShrink: 0, alignItems: 'center',
 };
 
 const rightPanelStyle = {
