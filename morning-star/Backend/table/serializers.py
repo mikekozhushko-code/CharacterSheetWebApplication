@@ -1,10 +1,17 @@
 from rest_framework import serializers
-from .models import GameSession
+from .models import GameSession, Scene
+
+class SceneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Scene
+        fields = ['id', 'name', 'tokens', 'map_image', 'order', 'is_visible']
 
 class GameSessionSerializer(serializers.ModelSerializer):
-    master_username = serializers.CharField(source='master.username', read_only=True)
+    scenes       = SceneSerializer(many=True, read_only=True)
+    active_scene = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model  = GameSession
-        fields = ('id', 'code', 'name', 'master', 'master_username', 'tokens', 'map_image', 'is_active', 'created_at')
-        read_only_fields = ('code', 'master', 'created_at')
+        fields = ['id', 'code', 'name', 'master', 'players',
+                  'is_active', 'created_at', 'active_scene', 'scenes']
+        read_only_fields = ['master', 'code', 'players', 'is_active', 'created_at']

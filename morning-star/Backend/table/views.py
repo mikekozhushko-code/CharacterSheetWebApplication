@@ -2,15 +2,24 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import GameSession
-from .serializers import GameSessionSerializer
+from .models import GameSession, Scene
+from .serializers import GameSessionSerializer, SceneSerializer
 
 class CreateSessionView(generics.CreateAPIView):
     serializer_class   = GameSessionSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(master=self.request.user)
+        session = serializer.save(master=self.request.user)
+        # Автоматично створюємо першу сцену
+        first_scene = Scene.objects.create(
+            session=session,
+            name='Сцена 1',
+            order=0,
+            is_visible=True,
+        )
+        session.active_scene = first_scene
+        session.save()
 
 class JoinSessionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -29,5 +38,42 @@ class SessionDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        code = self.kwargs['code']
-        return GameSession.objects.get(code=code)
+        return GameSession.objects.prefetch_related('scenes').get(
+            code=self.kwargs['code']
+        )
+
+class SceneListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, code):
+        session = GameSession.objects.get(code=code)
+        if session.master != request.user:
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        order = session.scenes.count()
+        scene = Scene.objects.create(
+            session=session,
+            name=request.data.get('name', f'Сцена {order + 1}'),
+            order=order,
+        )
+        return Response(SceneSerializer(scene).data, status=status.HTTP_201_CREATED)
+
+class SceneDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, code, scene_id):
+        session = GameSession.objects.get(code=code)
+        if session.master != request.user:
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        Scene.objects.filter(id=scene_id, session=session).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, code, scene_id):
+        session = GameSession.objects.get(code=code)
+        if session.master != request.user:
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        scene = Scene.objects.get(id=scene_id, session=session)
+        serializer = SceneSerializer(scene, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
