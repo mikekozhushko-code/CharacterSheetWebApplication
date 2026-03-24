@@ -27,7 +27,7 @@ const Header = ({ isAuthPage = false, btnText = "signUp", btnLink = "/registrati
 
             <div className="main-header">
                 
-                <Link to="/" className="logo-link">
+                <Link to="/main" className="logo-link">
                     <img
                         className={isAuthPage ? "logo logo-auth" : "logo"}
                         src="/assets/icons/logo.svg"
@@ -37,7 +37,7 @@ const Header = ({ isAuthPage = false, btnText = "signUp", btnLink = "/registrati
 
                 {!isAuthPage && (
                     <nav className={language === 'uk' ? 'nav-uk' : ''}>
-                        <Link className="nav-item" to="/main">{t('home')}</Link>
+                        <Link className="nav-item" to="/table">{t('table')}</Link>
                         <Link className="nav-item" to="/character">{t('character')}</Link>
                         <Link className="nav-item" to="/news">{t('news')}</Link>
                         <Link className="nav-item" to="/about">{t('about')}</Link>

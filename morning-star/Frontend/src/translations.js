@@ -13,6 +13,7 @@ export const translations = {
         wizard: "Wizard",
         // --- Навігація (Header) ---
         home: "Home",
+        table: "Table",
         character: "Character",
         news: "News",
         about: "About",
@@ -245,6 +246,7 @@ export const translations = {
         wizard: "Чарівник",
         // --- Навігація (Header) ---
         home: "Головна",
+        table: "Стіл",
         character: "Персонаж",
         news: "Новини",
         about: "Про нас",
