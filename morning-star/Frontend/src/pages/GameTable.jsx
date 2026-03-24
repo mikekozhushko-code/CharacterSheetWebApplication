@@ -44,6 +44,8 @@ const GameTable = () => {
     const [session,     setSession]     = useState(null);
     const [isMaster,    setIsMaster]    = useState(false);
     const [isConnected, setIsConnected] = useState(false);
+    // ── Refs ──
+    const tokenFileInputRef = useRef(null);
 
     // ── Scenes ────────────────────────────────────────────────────────────────
     const [scenes,         setScenes]         = useState([]);
@@ -67,6 +69,15 @@ const GameTable = () => {
 
     // ── Dice ──────────────────────────────────────────────────────────────────
     const [diceLog, setDiceLog] = useState([]);
+
+    useEffect(() => {
+        if (!activeSceneId) return;
+        setScenes((prev) => prev.map((s) =>
+            s.id === activeSceneId
+                ? { ...s, tokens: objects }
+                : s
+        ));
+    }, [objects]);
 
     // ── Активна сцена (ref для handlers) ─────────────────────────────────────
     const activeSceneIdRef = useRef(activeSceneId);
@@ -256,16 +267,28 @@ const GameTable = () => {
     };
 
     const handleAddToken = () => {
-        const newToken = {
-            id: Date.now(), type: 'token',
-            x: 200, y: 200, w: 60, h: 60,
-            src: null, label: 'Token',
+        tokenFileInputRef.current.click();
+    };
+
+    const handleTokenImageSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const newToken = {
+                id: Date.now(), type: 'token',
+                x: 200, y: 200, w: 60, h: 60,
+                src: ev.target.result,
+                label: file.name.replace(/\.[^.]+$/, ''), // ім'я без розширення
+            };
+            setObjects((prev) => {
+                const updated = [...prev, newToken];
+                wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: updated });
+                return updated;
+            });
         };
-        setObjects((prev) => {
-            const updated = [...prev, newToken];
-            wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: updated });
-            return updated;
-        });
+        reader.readAsDataURL(file);
+        e.target.value = '';
     };
 
     const handleDelete = () => {
@@ -565,6 +588,11 @@ const GameTable = () => {
                                     <button style={toolBtnStyle} onClick={() => fileInputRef.current.click()}>
                                         🖼️ Add Image
                                     </button>
+
+                                    <input
+                                        type="file" accept="image/*" ref={tokenFileInputRef}
+                                        style={{ display: 'none' }} onChange={handleTokenImageSelect}
+                                    />
                                     <button style={toolBtnStyle} onClick={handleAddToken}>
                                         👤 Add Token
                                     </button>
