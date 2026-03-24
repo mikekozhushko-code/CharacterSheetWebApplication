@@ -88,16 +88,25 @@ class TableConsumer(AsyncWebsocketConsumer):
         })
 
     async def handle_switch_scene(self, payload):
-        """DM перемикає активну сцену — гравці бачать splash."""
         if not await self.is_master():
             return
         scene_id = payload.get('scene_id')
-        await self.set_active_scene(scene_id)
+        current_scene_id = payload.get('current_scene_id')
+        current_tokens   = payload.get('current_tokens', [])
+
+        # Зберігаємо токени поточної сцени
+        if current_scene_id:
+            await self.save_tokens(current_scene_id, current_tokens)
+
+        # Отримуємо токени нової сцени
+        tokens = await self.set_active_scene(scene_id)
+
         await self.channel_layer.group_send(self.room_group, {
             'type':    'broadcast',
             'message': {'type': 'switch_scene', 'payload': {
                 'scene_id':   scene_id,
-                'is_visible': False,  # гравці бачать splash
+                'is_visible': False,
+                'tokens':     tokens,  # ← токени нової сцени
             }}
         })
 
@@ -195,6 +204,8 @@ class TableConsumer(AsyncWebsocketConsumer):
     def set_active_scene(self, scene_id):
         GameSession.objects.filter(code=self.session_code).update(active_scene_id=scene_id)
         Scene.objects.filter(id=scene_id).update(is_visible=False)
+        scene = Scene.objects.get(id=scene_id)
+        return scene.tokens  # ← повертаємо токени
 
     @database_sync_to_async
     def reveal_scene(self, scene_id):

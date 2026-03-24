@@ -124,8 +124,12 @@ const GameTable = () => {
             case 'switch_scene':
                 setActiveSceneId(data.payload.scene_id);
                 setIsVisible(false);
-                // Завантажуємо токени нової сцени
-                setObjects(data.payload.tokens || []);
+                // Спочатку беремо з локального стану scenes, потім з бекенду
+                setScenes((prev) => {
+                    const scene = prev.find((s) => s.id === data.payload.scene_id);
+                    setObjects(scene?.tokens || data.payload.tokens || []);
+                    return prev;
+                });
                 break;
 
             case 'reveal_scene':
@@ -185,11 +189,19 @@ const GameTable = () => {
 
     const handleSwitchScene = (sceneId) => {
         if (sceneId === activeSceneId) return;
-        // Зберігаємо токени поточної сцени перед перемиканням
-        wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: objects });
-        setTimeout(() => {
-            wsSend('switch_scene', { scene_id: sceneId });
-        }, 100);
+
+        // Зберігаємо поточні objects в локальний стан scenes
+        setScenes((prev) => prev.map((s) =>
+            s.id === activeSceneIdRef.current
+                ? { ...s, tokens: objects }
+                : s
+        ));
+
+        wsSend('switch_scene', {
+            scene_id:         sceneId,
+            current_scene_id: activeSceneIdRef.current,
+            current_tokens:   objects,
+        });
     };
 
     const handleRevealScene = () => {
