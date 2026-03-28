@@ -4,7 +4,7 @@ import { authApi } from '../Api.jsx';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const WS_BASE    = 'ws://localhost:8000';
+const WS_BASE = import.meta.env.VITE_WS_URL || `ws://${window.location.host}`;
 const DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
 const ZOOM_MIN   = 0.2;
 const ZOOM_MAX   = 3;
