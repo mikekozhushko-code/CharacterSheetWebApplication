@@ -142,7 +142,7 @@ const SharedCharacter = () => {
                 <div className="hud-left">
                     <div className="hud-avatar">
                         <img
-                            src={`http://localhost:8000${character.avatar}`}
+                            src={character.avatar}
                             alt="Avatar"
                             onError={(e) => { e.target.src = 'https://via.placeholder.com/150/15100d/ffc400?text=No+Image'; }}
                         />
