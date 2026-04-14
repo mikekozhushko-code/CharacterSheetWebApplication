@@ -31,6 +31,15 @@ class Scene(models.Model):
     order      = models.PositiveIntegerField(default=0)
     is_visible = models.BooleanField(default=False)  # чи бачать гравці цю сцену
     created_at = models.DateTimeField(auto_now_add=True)
+    grid_enabled = models.BooleanField(default=False)
+    grid_snap    = models.BooleanField(default=False)
+    grid_type    = models.CharField(
+        max_length=10,
+        choices=[('square', 'Square'), ('hex', 'Hex')],
+        default='square'
+    )
+    grid_size    = models.IntegerField(default=60)
+    grid_color   = models.CharField(max_length=30, default='rgba(255,255,255,0.15)')
 
     class Meta:
         ordering = ['order']

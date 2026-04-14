@@ -77,3 +77,28 @@ class SceneDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MySessionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        master_sessions = GameSession.objects.filter(
+            master=request.user
+        ).prefetch_related('scenes').order_by('-created_at')
+
+        joined_sessions = GameSession.objects.filter(
+            players=request.user
+        ).prefetch_related('scenes').order_by('-created_at')
+
+        return Response({
+            'master': GameSessionSerializer(master_sessions, many=True).data,
+            'joined': GameSessionSerializer(joined_sessions, many=True).data,
+        })
+
+    def delete(self, request, pk=None):
+        try:
+            session = GameSession.objects.get(pk=pk, master=request.user)
+            session.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except GameSession.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)

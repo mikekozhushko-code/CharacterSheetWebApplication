@@ -1,56 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../Api.jsx';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─── GameLobby ────────────────────────────────────────────────────────────────
-
 const GameLobby = () => {
     const navigate = useNavigate();
 
-    // ── Create session state ──────────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────────
+    const [masterSessions, setMasterSessions] = useState([]);
+    const [joinedSessions, setJoinedSessions] = useState([]);
+    const [isLoading,      setIsLoading]      = useState(true);
+
     const [sessionName, setSessionName] = useState('');
-    const [isCreating, setIsCreating]   = useState(false);
+    const [isCreating,  setIsCreating]  = useState(false);
     const [createError, setCreateError] = useState('');
 
-    // ── Join session state ────────────────────────────────────────────────────
-    const [joinCode, setJoinCode]   = useState('');
+    const [joinCode,  setJoinCode]  = useState('');
     const [isJoining, setIsJoining] = useState(false);
     const [joinError, setJoinError] = useState('');
 
-    // ── Handlers ──────────────────────────────────────────────────────────────
+    // ── Fetch my sessions ─────────────────────────────────────────────────────
+    const fetchSessions = async () => {
+        setIsLoading(true);
+        try {
+            const res = await authApi().get('/table/my/');
+            setMasterSessions(res.data.master);
+            setJoinedSessions(res.data.joined);
+        } catch (err) {
+            console.error('Fetch sessions error:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    /** Creates a new session and navigates to the table. */
+    useEffect(() => { fetchSessions(); }, []);
+
+    // ── Handlers ──────────────────────────────────────────────────────────────
     const handleCreate = async () => {
-        if (!sessionName.trim()) { setCreateError('Enter a session name'); return; }
+        if (!sessionName.trim()) { setCreateError('Введіть назву сесії'); return; }
         setIsCreating(true);
         setCreateError('');
         try {
             const res = await authApi().post('/table/create/', { name: sessionName });
             navigate(`/table/${res.data.code}`);
         } catch (err) {
-            setCreateError('Failed to create session. Try again.');
-            console.error('Create session error:', err);
+            setCreateError('Не вдалось створити сесію');
+            console.error(err);
         } finally {
             setIsCreating(false);
         }
     };
 
-    /** Joins an existing session by code and navigates to the table. */
     const handleJoin = async () => {
-        if (!joinCode.trim()) { setJoinError('Enter a session code'); return; }
+        if (!joinCode.trim()) { setJoinError('Введіть код сесії'); return; }
         setIsJoining(true);
         setJoinError('');
         try {
             const res = await authApi().post('/table/join/', { code: joinCode.toUpperCase() });
             navigate(`/table/${res.data.code}`);
         } catch (err) {
-            if (err.response?.status === 404) setJoinError('Session not found. Check the code.');
-            else setJoinError('Failed to join. Try again.');
-            console.error('Join session error:', err);
+            if (err.response?.status === 404) setJoinError('Сесію не знайдено');
+            else setJoinError('Не вдалось приєднатись');
+            console.error(err);
         } finally {
             setIsJoining(false);
+        }
+    };
+
+    const handleDelete = async (pk) => {
+        if (!window.confirm('Видалити цей стіл?')) return;
+        try {
+            await authApi().delete(`/table/my/${pk}/`);
+            setMasterSessions((prev) => prev.filter((s) => s.id !== pk));
+        } catch (err) {
+            console.error('Delete error:', err);
         }
     };
 
@@ -59,59 +83,123 @@ const GameLobby = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#e0d6c8' }}>
             <Header />
 
-            <div style={{ maxWidth: '600px', margin: '80px auto', padding: '0 20px' }}>
+            <div style={{ maxWidth: '860px', margin: '60px auto', padding: '0 20px' }}>
                 <h1 style={{ textAlign: 'center', color: '#ffc400', letterSpacing: '2px', marginBottom: '48px' }}>
-                    ⚔️ Game Table
+                    ⚔️ Game Lobby
                 </h1>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* ── Create + Join ── */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '48px' }}>
 
-                    {/* ── Create session ── */}
                     <div style={cardStyle}>
-                        <h2 style={cardTitleStyle}>🎲 Create Session</h2>
-                        <p style={cardDescStyle}>Start a new game as Dungeon Master</p>
+                        <h2 style={cardTitleStyle}>🎲 Новий стіл</h2>
+                        <p style={cardDescStyle}>Створити гру як Dungeon Master</p>
                         <input
                             type="text"
-                            placeholder="Session name..."
+                            placeholder="Назва кампанії..."
                             value={sessionName}
                             onChange={(e) => setSessionName(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                             style={inputStyle}
                         />
                         {createError && <p style={errorStyle}>{createError}</p>}
-                        <button
-                            onClick={handleCreate}
-                            disabled={isCreating}
-                            style={btnPrimaryStyle}
-                        >
-                            {isCreating ? '...' : 'Create'}
+                        <button onClick={handleCreate} disabled={isCreating} style={btnPrimaryStyle}>
+                            {isCreating ? '...' : 'Створити'}
                         </button>
                     </div>
 
-                    {/* ── Join session ── */}
                     <div style={cardStyle}>
-                        <h2 style={cardTitleStyle}>🚪 Join Session</h2>
-                        <p style={cardDescStyle}>Join an existing game as Player</p>
+                        <h2 style={cardTitleStyle}>🚪 Приєднатись</h2>
+                        <p style={cardDescStyle}>Увійти в гру як гравець</p>
                         <input
                             type="text"
-                            placeholder="Session code..."
+                            placeholder="КОД СЕСІЇ..."
                             value={joinCode}
                             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                             maxLength={8}
-                            style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '4px', textAlign: 'center' }}
+                            style={{ ...inputStyle, letterSpacing: '4px', textAlign: 'center' }}
                         />
                         {joinError && <p style={errorStyle}>{joinError}</p>}
-                        <button
-                            onClick={handleJoin}
-                            disabled={isJoining}
-                            style={btnSecondaryStyle}
-                        >
-                            {isJoining ? '...' : 'Join'}
+                        <button onClick={handleJoin} disabled={isJoining} style={btnSecondaryStyle}>
+                            {isJoining ? '...' : 'Приєднатись'}
                         </button>
                     </div>
 
                 </div>
+
+                {/* ── Списки столів ── */}
+                {isLoading ? (
+                    <p style={{ textAlign: 'center', color: '#555' }}>Завантаження...</p>
+                ) : (
+                    <>
+                        {/* Мої столи */}
+                        {masterSessions.length > 0 && (
+                            <div style={{ marginBottom: '36px' }}>
+                                <h3 style={sectionTitleStyle}>👑 Мої столи</h3>
+                                <div style={tableListStyle}>
+                                    {masterSessions.map((s) => (
+                                        <div key={s.id} style={tableRowStyle}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ color: '#ffc400', fontWeight: 'bold', fontSize: '15px' }}>
+                                                    {s.name}
+                                                </span>
+                                                <span style={{ color: '#555', fontSize: '12px', letterSpacing: '2px' }}>
+                                                    {s.code}
+                                                </span>
+                                                <span style={{ color: '#444', fontSize: '11px' }}>
+                                                    {s.scenes?.length || 0} сцен · {new Date(s.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button style={btnEnterStyle} onClick={() => navigate(`/table/${s.code}`)}>
+                                                    Увійти
+                                                </button>
+                                                <button style={btnDeleteStyle} onClick={() => handleDelete(s.id)}>
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Приєднані столи */}
+                        {joinedSessions.length > 0 && (
+                            <div>
+                                <h3 style={sectionTitleStyle}>🎮 Столи де я граю</h3>
+                                <div style={tableListStyle}>
+                                    {joinedSessions.map((s) => (
+                                        <div key={s.id} style={tableRowStyle}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ color: '#e0d6c8', fontWeight: 'bold', fontSize: '15px' }}>
+                                                    {s.name}
+                                                </span>
+                                                <span style={{ color: '#555', fontSize: '12px', letterSpacing: '2px' }}>
+                                                    {s.code}
+                                                </span>
+                                                <span style={{ color: '#444', fontSize: '11px' }}>
+                                                    {new Date(s.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <button style={btnEnterStyle} onClick={() => navigate(`/table/${s.code}`)}>
+                                                Увійти
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Порожній стан */}
+                        {masterSessions.length === 0 && joinedSessions.length === 0 && (
+                            <p style={{ textAlign: 'center', color: '#444', fontSize: '14px' }}>
+                                У тебе ще немає столів. Створи новий або приєднайся до існуючого!
+                            </p>
+                        )}
+                    </>
+                )}
             </div>
 
             <Footer />
@@ -131,17 +219,9 @@ const cardStyle = {
     gap: '12px',
 };
 
-const cardTitleStyle = {
-    color: '#ffc400',
-    margin: 0,
-    fontSize: '18px',
-};
-
-const cardDescStyle = {
-    color: '#888',
-    margin: 0,
-    fontSize: '13px',
-};
+const cardTitleStyle = { color: '#ffc400', margin: 0, fontSize: '18px' };
+const cardDescStyle  = { color: '#888', margin: 0, fontSize: '13px' };
+const errorStyle     = { color: '#e57373', fontSize: '12px', margin: 0 };
 
 const inputStyle = {
     backgroundColor: '#0d0d0d',
@@ -153,12 +233,6 @@ const inputStyle = {
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box',
-};
-
-const errorStyle = {
-    color: '#e57373',
-    fontSize: '12px',
-    margin: 0,
 };
 
 const btnPrimaryStyle = {
@@ -183,6 +257,50 @@ const btnSecondaryStyle = {
     fontWeight: 'bold',
     cursor: 'pointer',
     marginTop: 'auto',
+};
+
+const sectionTitleStyle = {
+    color: '#888',
+    fontSize: '12px',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    marginBottom: '12px',
+};
+
+const tableListStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+};
+
+const tableRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 20px',
+    backgroundColor: '#1a1510',
+    border: '1px solid #3a2e1e',
+    borderRadius: '10px',
+};
+
+const btnEnterStyle = {
+    backgroundColor: 'transparent',
+    color: '#ffc400',
+    border: '1px solid #ffc400',
+    borderRadius: '8px',
+    padding: '8px 20px',
+    fontSize: '13px',
+    cursor: 'pointer',
+};
+
+const btnDeleteStyle = {
+    backgroundColor: 'transparent',
+    color: '#e57373',
+    border: '1px solid #e57373',
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '13px',
+    cursor: 'pointer',
 };
 
 export default GameLobby;
