@@ -453,7 +453,20 @@ const GameTable = () => {
                         </span>
                     )}
                 </div>
-                <button onClick={() => navigate('/table')} style={btnDangerStyle}>Leave</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        style={{
+                            backgroundColor: 'transparent', color: '#81c784',
+                            border: '1px solid #81c784', borderRadius: '6px',
+                            padding: '6px 14px', cursor: 'pointer', fontSize: '13px',
+                        }}
+                        onClick={() => window.open(`/wiki/${session.id}`, '_blank')}
+                        title="Відкрити вікі лору"
+                    >
+                        📖 Wiki
+                    </button>
+                    <button onClick={() => navigate('/table')} style={btnDangerStyle}>Leave</button>
+                </div>
             </div>
 
             {/* ── Main area ── */}

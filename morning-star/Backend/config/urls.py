@@ -24,4 +24,5 @@ urlpatterns = [
     path("api/", include("accounts.urls")),
     path("api/", include("characters.urls")),
     path('api/', include('table.urls')),
+    path("api/", include("worldbuilder.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

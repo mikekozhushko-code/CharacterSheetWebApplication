@@ -18,15 +18,20 @@ import HomePage from './pages/HomePage.jsx'
 import PublicRoute from './components/PublicRoute.jsx';
 import GameLobby from './pages/Gamelobby.jsx';
 import GameTable from './pages/GameTable.jsx';
+import { WorldBuilderProvider } from './context/WorldBuilderContext';
+import WorldBuilder from './pages/WorldBuilder';
+import WorldEditor from './pages/WorldEditor';
+import WikiView from './components/worldbuilder/WikiView';
 
 
 function App() {
   return (
     <LanguageProvider>
+      <WorldBuilderProvider>
     <Routes>
-      <Route path="/home" element={
+      {/* <Route path="/home" element={
         <HomePage />
-        } />
+        } /> */}
 
       <Route path="/" element={
         <PublicRoute>
@@ -99,7 +104,18 @@ function App() {
         </PrivateRoute>
       } />
 
+      <Route path="/worldbuilder" element={
+        <PrivateRoute><WorldBuilder /></PrivateRoute>
+      } />
+      <Route path="/worldbuilder/:id" element={
+        <PrivateRoute><WorldEditor /></PrivateRoute>
+      } />
+      <Route path="/wiki/:session_id" element={
+        <PrivateRoute><WikiView /></PrivateRoute>
+      } />
+
       </Routes>
+      </WorldBuilderProvider>
     </LanguageProvider>
   );
 }
