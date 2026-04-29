@@ -173,18 +173,12 @@
 }
 
 /* ── ФІКС СКРОЛУ — центральна зона ──────────────────── */
-/* .wb-editor-main {
+.wb-editor-main {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 28px 32px;
-  min-height: 0;
-} 
-*/
-
-.wb-editor-main {
-  flex: 1;
-  overflow-y: auto;
+  min-height: 0; /* ← КРИТИЧНО */
 }
 
 .wb-editor-main::-webkit-scrollbar { width: 8px; }
@@ -531,7 +525,13 @@
 }
 
 /* ── Wrapper-и для сторінок з хедером ───────────────── */
-
+.wb-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--wb-bg);
+}
 
 .wb-editor {
   display: flex;
@@ -556,15 +556,150 @@
   width: 100%;
 }
 
-.wb-editor-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* ── CardBlocks ──────────────────────────────────────────────────────────── */
+.wb-blocks { display: flex; flex-direction: column; gap: 16px; }
+
+.wb-blocks-header h4 {
+  font-size: 16px; color: var(--wb-accent);
+  font-family: var(--wb-font); margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.06em;
 }
 
+.wb-blocks-hint { font-size: 12px; color: var(--wb-muted); margin: 0 0 8px; }
 
-.wb-editor-layout {
-  flex: 1;
+.wb-block {
+  background: var(--wb-surface);
+  border: 1px solid var(--wb-border2);
+  border-radius: var(--wb-radius);
+  padding: 14px;
   display: flex;
-  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s;
+}
+.wb-block:hover { border-color: var(--wb-border); }
+
+.wb-block-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wb-block-title-input {
+  flex: 1;
+  min-width: 120px;
+  background: #000;
+  border: 1px solid var(--wb-border2);
+  border-radius: 4px;
+  color: var(--wb-text);
+  padding: 6px 10px;
+  font-size: 15px;
+  font-family: var(--wb-font);
+  font-weight: 600;
+}
+.wb-block-title-input:focus { border-color: var(--wb-accent); outline: none; }
+
+.wb-block-visibility {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+  font-family: var(--wb-font);
+}
+.wb-block-visibility input { accent-color: var(--wb-accent); width: 14px; height: 14px; }
+.vis-on  { color: #4caf50; }
+.vis-off { color: var(--wb-muted); }
+
+.wb-block-save-btn {
+  background: #835F0A;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-family: var(--wb-font);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.wb-block-save-btn:hover { background: #a07410; }
+.wb-block-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.wb-block-delete-btn {
+  background: transparent;
+  border: 1px solid var(--wb-red);
+  color: var(--wb-red);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.wb-block-delete-btn:hover { background: var(--wb-red); color: #fff; }
+
+.wb-block-content {
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--wb-border2);
+  border-radius: 4px;
+  color: var(--wb-text);
+  padding: 10px;
+  font-size: 14px;
+  font-family: var(--wb-font);
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 100px;
+}
+.wb-block-content:focus { border-color: var(--wb-border); outline: none; background: #0f0a06; }
+
+.wb-block-add {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px dashed var(--wb-border);
+  border-radius: var(--wb-radius);
+  background: rgba(94,58,3,0.05);
+}
+
+.wb-block-new-title {
+  flex: 1;
+  background: #000;
+  border: 1px solid var(--wb-border2);
+  border-radius: 4px;
+  color: var(--wb-text);
+  padding: 7px 12px;
+  font-size: 14px;
+  font-family: var(--wb-font);
+}
+.wb-block-new-title:focus { border-color: var(--wb-accent); outline: none; }
+
+/* ── Wiki blocks ─────────────────────────────────────────────────────────── */
+.wiki-blocks { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+
+.wiki-block {
+  background: var(--wb-surface);
+  border: 1px solid var(--wb-border2);
+  border-radius: var(--wb-radius);
+  padding: 16px;
+}
+
+.wiki-block-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--wb-accent);
+  font-family: var(--wb-font);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--wb-border2);
+}
+
+.wiki-block-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--wb-text);
+  white-space: pre-wrap;
 }

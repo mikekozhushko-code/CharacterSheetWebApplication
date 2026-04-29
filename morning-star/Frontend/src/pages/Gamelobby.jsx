@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authApi } from '../Api.jsx';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import DungeonCrawler from '../components/DungeonCrawler';
 
 const GameLobby = () => {
     const navigate = useNavigate();
@@ -18,6 +19,8 @@ const GameLobby = () => {
     const [joinCode,  setJoinCode]  = useState("");
     const [isJoining, setIsJoining] = useState(false);
     const [joinError, setJoinError] = useState('');
+
+    const [showDungeon, setShowDungeon] = useState(false);
 
     // ── Wiki modal state ──────────────────────────────────────────────────────
     const [wikiModal,    setWikiModal]    = useState(null); // { sessionId, sessionName }
@@ -137,6 +140,15 @@ const GameLobby = () => {
                 <h1 style={{ textAlign: 'center', color: '#ffc400', letterSpacing: '2px', marginBottom: '48px' }}>
                     ⚔️ Game Lobby
                 </h1>
+                <button
+                    onClick={() => setShowDungeon(true)}
+                    style={{
+                        background: "transparent", color: "#ffc400",
+                        border: "1px solid #5e3a03", borderRadius: 8,
+                        padding: "10px 20px", fontSize: 14, cursor: "pointer",
+                        display: "block", margin: "0 auto 32px",
+                    }}
+                >🎮 Зіграти поки чекаєш</button>
 
                 {/* ── Create + Join ── */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '48px' }}>
@@ -330,6 +342,7 @@ const GameLobby = () => {
                     </div>
                 </div>
             )}
+            {showDungeon && <DungeonCrawler onClose={() => setShowDungeon(false)} />}
         </div>
     );
 };

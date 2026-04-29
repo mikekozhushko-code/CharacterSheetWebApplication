@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useWorldBuilder } from "../../context/WorldBuilderContext";
 import DnDSheetForm from "./DnDSheetForm";
+import CardBlocks from "./CardBlocks";
 
 const CARD_TYPE_OPTIONS = [
   { value: "character", label: "👤 Персонаж" },
@@ -16,9 +17,9 @@ const CARD_TYPE_OPTIONS = [
 
 export default function CardModal({ worldId, folders }) {
   const { activeCard, updateCard } = useWorldBuilder();
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [editing,   setEditing]   = useState(false);
+  const [form,      setForm]      = useState(null);
+  const [saving,    setSaving]    = useState(false);
   const [activeTab, setActiveTab] = useState("info");
   const imageRef = useRef();
 
@@ -32,10 +33,10 @@ export default function CardModal({ worldId, folders }) {
 
   const startEdit = () => {
     setForm({
-      name: activeCard.name,
-      card_type: activeCard.card_type,
-      description: activeCard.description,
-      folder: activeCard.folder,
+      name:               activeCard.name,
+      card_type:          activeCard.card_type,
+      description:        activeCard.description,
+      folder:             activeCard.folder,
       is_visible_in_wiki: activeCard.is_visible_in_wiki,
     });
     setEditing(true);
@@ -45,9 +46,7 @@ export default function CardModal({ worldId, folders }) {
     setSaving(true);
     try {
       const payload = { ...form };
-      if (imageRef.current?.files[0]) {
-        payload.image = imageRef.current.files[0];
-      }
+      if (imageRef.current?.files[0]) payload.image = imageRef.current.files[0];
       await updateCard(worldId, activeCard.id, payload);
       setEditing(false);
     } finally {
@@ -56,6 +55,12 @@ export default function CardModal({ worldId, folders }) {
   };
 
   const isCharacter = activeCard.card_type === "character";
+
+  const tabs = [
+    { key: "info",   label: "Інформація" },
+    { key: "blocks", label: "📋 Блоки" },
+    ...(isCharacter ? [{ key: "sheet", label: "D&D Бланк" }] : []),
+  ];
 
   return (
     <div className="wb-card-view">
@@ -78,45 +83,51 @@ export default function CardModal({ worldId, folders }) {
                   Скасувати
                 </button>
                 <button className="wb-btn-primary" onClick={handleSave} disabled={saving}>
-                  {saving ? "Збереження..." : "Зберегти"}
+                  {saving ? "..." : "Зберегти"}
                 </button>
               </>
             ) : (
-              <button className="wb-btn-ghost" onClick={startEdit}>
-                ✏️ Редагувати
-              </button>
+              <button className="wb-btn-ghost" onClick={startEdit}>✏️ Редагувати</button>
             )}
           </div>
         </div>
 
-        {/* Табки — Info / DnD Sheet (тільки для персонажів) */}
-        {isCharacter && (
-          <div className="wb-card-tabs">
+        {/* Табки */}
+        <div className="wb-card-tabs">
+          {tabs.map((t) => (
             <button
-              className={`wb-tab ${activeTab === "info" ? "active" : ""}`}
-              onClick={() => setActiveTab("info")}
+              key={t.key}
+              className={`wb-tab ${activeTab === t.key ? "active" : ""}`}
+              onClick={() => setActiveTab(t.key)}
             >
-              Інформація
+              {t.label}
             </button>
-            <button
-              className={`wb-tab ${activeTab === "sheet" ? "active" : ""}`}
-              onClick={() => setActiveTab("sheet")}
-            >
-              D&D Бланк
-            </button>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Вміст */}
       <div className="wb-card-body">
-        {activeTab === "sheet" && isCharacter ? (
+        {/* ── DnD Sheet ── */}
+        {activeTab === "sheet" && isCharacter && (
           <DnDSheetForm
             sheet={activeCard.dnd_sheet}
             worldId={worldId}
             cardId={activeCard.id}
           />
-        ) : (
+        )}
+
+        {/* ── Блоки ── */}
+        {activeTab === "blocks" && (
+          <CardBlocks
+            worldId={worldId}
+            cardId={activeCard.id}
+            blocks={activeCard.blocks || []}
+          />
+        )}
+
+        {/* ── Основна інформація ── */}
+        {activeTab === "info" && (
           <>
             {/* Зображення */}
             <div className="wb-card-image-block">
@@ -158,7 +169,9 @@ export default function CardModal({ worldId, folders }) {
                   >
                     <option value="">— Без папки —</option>
                     {folders?.map((f) => (
-                      <option key={f.id} value={f.id}>{f.name}</option>
+                      <option key={f.id} value={f.id}>
+                        {"  ".repeat(f._depth || 0)}{f.name}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -166,9 +179,11 @@ export default function CardModal({ worldId, folders }) {
                   <input
                     type="checkbox"
                     checked={form.is_visible_in_wiki}
-                    onChange={(e) => setForm({ ...form, is_visible_in_wiki: e.target.checked })}
+                    onChange={(e) =>
+                      setForm({ ...form, is_visible_in_wiki: e.target.checked })
+                    }
                   />
-                  Видимо у вікі
+                  Картка видима у вікі
                 </label>
               </div>
             ) : (
@@ -188,12 +203,14 @@ export default function CardModal({ worldId, folders }) {
                 className="wb-card-desc-edit"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Опис карточки..."
-                rows={10}
+                placeholder="Короткий опис (показується у вікі якщо картка публічна)..."
+                rows={6}
               />
             ) : (
               <div className="wb-card-description">
-                {activeCard.description || <span className="wb-muted">Опис відсутній</span>}
+                {activeCard.description || (
+                  <span className="wb-muted">Опис відсутній</span>
+                )}
               </div>
             )}
           </>

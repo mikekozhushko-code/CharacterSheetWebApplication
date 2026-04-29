@@ -1,35 +1,31 @@
 from django.urls import path
 from .views import (
-    WorldListCreateView,
-    WorldDetailView,
-    FolderListCreateView,
-    FolderDetailView,
-    CardListCreateView,
-    CardDetailView,
+    WorldListCreateView, WorldDetailView,
+    FolderListCreateView, FolderDetailView,
+    CardListCreateView, CardDetailView,
+    CardBlockListCreateView, CardBlockDetailView,
     DnDSheetDetailView,
-    WikiSettingsView,
-    PublicWikiView,
+    WikiSettingsView, PublicWikiView,
 )
 
 urlpatterns = [
-    # ── Worlds ──────────────────────────────────────────
-    path("worlds/", WorldListCreateView.as_view(), name="world-list"),
-    path("worlds/<int:pk>/", WorldDetailView.as_view(), name="world-detail"),
+    path("worlds/", WorldListCreateView.as_view()),
+    path("worlds/<int:pk>/", WorldDetailView.as_view()),
 
-    # ── Folders ─────────────────────────────────────────
-    path("worlds/<int:world_id>/folders/", FolderListCreateView.as_view(), name="folder-list"),
-    path("worlds/<int:world_id>/folders/<int:pk>/", FolderDetailView.as_view(), name="folder-detail"),
+    path("worlds/<int:world_id>/folders/", FolderListCreateView.as_view()),
+    path("worlds/<int:world_id>/folders/<int:pk>/", FolderDetailView.as_view()),
 
-    # ── Cards ────────────────────────────────────────────
-    path("worlds/<int:world_id>/cards/", CardListCreateView.as_view(), name="card-list"),
-    path("worlds/<int:world_id>/cards/<int:pk>/", CardDetailView.as_view(), name="card-detail"),
+    path("worlds/<int:world_id>/cards/", CardListCreateView.as_view()),
+    path("worlds/<int:world_id>/cards/<int:pk>/", CardDetailView.as_view()),
 
-    # ── DnD Sheet ────────────────────────────────────────
-    path("worlds/<int:world_id>/cards/<int:card_id>/sheet/", DnDSheetDetailView.as_view(), name="dnd-sheet"),
+    path("worlds/<int:world_id>/cards/<int:card_id>/blocks/",
+         CardBlockListCreateView.as_view()),
+    path("worlds/<int:world_id>/cards/<int:card_id>/blocks/<int:pk>/",
+         CardBlockDetailView.as_view()),
 
-    # ── Wiki Settings (майстер) ──────────────────────────
-    path("sessions/<int:session_id>/wiki/", WikiSettingsView.as_view(), name="wiki-settings"),
+    path("worlds/<int:world_id>/cards/<int:card_id>/sheet/",
+         DnDSheetDetailView.as_view()),
 
-    # ── Public Wiki (гравці) ─────────────────────────────
-    path("sessions/<int:session_id>/wiki/view/", PublicWikiView.as_view(), name="wiki-public"),
+    path("sessions/<int:session_id>/wiki/", WikiSettingsView.as_view()),
+    path("sessions/<int:session_id>/wiki/view/", PublicWikiView.as_view()),
 ]

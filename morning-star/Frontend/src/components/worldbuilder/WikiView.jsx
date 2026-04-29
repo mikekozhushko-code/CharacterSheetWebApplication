@@ -112,6 +112,18 @@ export default function WikiView() {
             <div className="wiki-article-body">
               {activeCard.description || <span className="wiki-muted">Опис відсутній</span>}
             </div>
+            {activeCard.blocks?.length > 0 && (
+              <div className="wiki-blocks">
+                {activeCard.blocks.map((block) => (
+                  <div key={block.id} className="wiki-block">
+                    <div className="wiki-block-title">{block.title}</div>
+                    <div className="wiki-block-content">
+                      {block.content || <span className="wiki-muted">Порожньо</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
         )}
       </main>

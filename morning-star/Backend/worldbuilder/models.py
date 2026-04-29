@@ -47,14 +47,14 @@ class Folder(models.Model):
 class Card(models.Model):
     class CardType(models.TextChoices):
         CHARACTER = "character", "Персонаж"
-        LOCATION = "location", "Локація"
-        MAP = "map", "Карта"
-        CREATURE = "creature", "Істота"
-        WEAPON = "weapon", "Зброя"
-        ITEM = "item", "Предмет"
-        FACTION = "faction", "Фракція"
-        EVENT = "event", "Подія"
-        OTHER = "other", "Інше"
+        LOCATION  = "location",  "Локація"
+        MAP       = "map",       "Карта"
+        CREATURE  = "creature",  "Істота"
+        WEAPON    = "weapon",    "Зброя"
+        ITEM      = "item",      "Предмет"
+        FACTION   = "faction",   "Фракція"
+        EVENT     = "event",     "Подія"
+        OTHER     = "other",     "Інше"
 
     world = models.ForeignKey(
         World, on_delete=models.CASCADE, related_name="cards"
@@ -86,17 +86,35 @@ class Card(models.Model):
         return f"{self.name} ({self.get_card_type_display()})"
 
 
-class DnDSheet(models.Model):
-    """DnD 5e character sheet — прив'язаний до карточки типу character."""
+class CardBlock(models.Model):
+    """Блок вмісту всередині карточки з власною видимістю у вікі."""
 
+    card = models.ForeignKey(
+        Card,
+        on_delete=models.CASCADE,
+        related_name="blocks",
+    )
+    title = models.CharField(max_length=255)
+    content = models.TextField(blank=True)
+    is_visible_in_wiki = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "created_at"]
+
+    def __str__(self):
+        return f"{self.card.name} — {self.title}"
+
+
+class DnDSheet(models.Model):
     card = models.OneToOneField(
         Card,
         on_delete=models.CASCADE,
         related_name="dnd_sheet",
         limit_choices_to={"card_type": Card.CardType.CHARACTER},
     )
-
-    # --- Основна інформація ---
     character_class = models.CharField(max_length=100, blank=True)
     subclass = models.CharField(max_length=100, blank=True)
     race = models.CharField(max_length=100, blank=True)
@@ -104,16 +122,12 @@ class DnDSheet(models.Model):
     alignment = models.CharField(max_length=50, blank=True)
     experience_points = models.PositiveIntegerField(default=0)
     level = models.PositiveSmallIntegerField(default=1)
-
-    # --- Характеристики (ability scores) ---
     strength = models.PositiveSmallIntegerField(default=10)
     dexterity = models.PositiveSmallIntegerField(default=10)
     constitution = models.PositiveSmallIntegerField(default=10)
     intelligence = models.PositiveSmallIntegerField(default=10)
     wisdom = models.PositiveSmallIntegerField(default=10)
     charisma = models.PositiveSmallIntegerField(default=10)
-
-    # --- Бойові характеристики ---
     max_hp = models.PositiveSmallIntegerField(default=0)
     current_hp = models.SmallIntegerField(default=0)
     temporary_hp = models.PositiveSmallIntegerField(default=0)
@@ -121,24 +135,16 @@ class DnDSheet(models.Model):
     initiative = models.SmallIntegerField(default=0)
     speed = models.PositiveSmallIntegerField(default=30)
     hit_dice = models.CharField(max_length=20, blank=True)
-
-    # --- Навички та кидки рятівника (зберігаємо як JSON) ---
     saving_throws = models.JSONField(default=dict, blank=True)
     skills = models.JSONField(default=dict, blank=True)
-
-    # --- Інвентар та риси ---
     equipment = models.TextField(blank=True)
     features_and_traits = models.TextField(blank=True)
     other_proficiencies = models.TextField(blank=True)
     languages = models.TextField(blank=True)
-
-    # --- Заклинання ---
     spellcasting_ability = models.CharField(max_length=20, blank=True)
     spell_save_dc = models.PositiveSmallIntegerField(default=0)
     spell_attack_bonus = models.SmallIntegerField(default=0)
     spells = models.JSONField(default=dict, blank=True)
-
-    # --- Backstory ---
     personality_traits = models.TextField(blank=True)
     ideals = models.TextField(blank=True)
     bonds = models.TextField(blank=True)
@@ -150,9 +156,6 @@ class DnDSheet(models.Model):
 
 
 class WikiSettings(models.Model):
-    """Налаштування вікі для конкретного ігрового столу."""
-
-    # Circular import уникаємо через string reference
     game_session = models.OneToOneField(
         "table.GameSession",
         on_delete=models.CASCADE,
@@ -166,11 +169,9 @@ class WikiSettings(models.Model):
         null=True,
     )
     is_enabled = models.BooleanField(default=False)
-    # Які папки повністю відкриті гравцям
     visible_folders = models.ManyToManyField(
         Folder, blank=True, related_name="wiki_settings"
     )
-    # Окремі карточки які відкриті понад налаштування папок
     visible_cards = models.ManyToManyField(
         Card, blank=True, related_name="wiki_settings"
     )
