@@ -250,7 +250,10 @@ const GameTable = () => {
         return { x: Math.round(x / s) * s, y: Math.round(y / s) * s };
     }, [grid.snap, grid.size]);
 
+    const MAX_UPLOAD_MB = 8;
     const uploadFile = async (file) => {
+        if (file.size > MAX_UPLOAD_MB * 1024 * 1024)
+            throw new Error(`Файл завеликий (максимум ${MAX_UPLOAD_MB} МБ)`);
         const fd = new FormData();
         fd.append('image', file);
         const res = await authApi.post('/table/upload/', fd);
@@ -307,7 +310,7 @@ const GameTable = () => {
             const newObj  = { id: Date.now(), type: 'image', ...snapped, w: 200, h: 150, src, label: file.name };
             setObjects((prev) => { const u = [...prev, newObj]; wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: u }); return u; });
         } catch (err) {
-            console.error('Image upload failed:', err);
+            alert(err.message || 'Помилка завантаження зображення');
         } finally {
             setIsUploading(false);
         }
@@ -324,7 +327,7 @@ const GameTable = () => {
             const newToken = { id: Date.now(), type: 'token', ...snapped, w: grid.size, h: grid.size, src, label: file.name.replace(/\.[^.]+$/, '') };
             setObjects((prev) => { const u = [...prev, newToken]; wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: u }); return u; });
         } catch (err) {
-            console.error('Token upload failed:', err);
+            alert(err.message || 'Помилка завантаження токена');
         } finally {
             setIsUploading(false);
         }
