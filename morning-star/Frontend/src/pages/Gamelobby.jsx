@@ -33,7 +33,7 @@ const GameLobby = () => {
     const fetchSessions = async () => {
         setIsLoading(true);
         try {
-            const res = await authApi().get('/table/my/');
+            const res = await authApi.get('/table/my/');
             setMasterSessions(res.data.master);
             setJoinedSessions(res.data.joined);
         } catch (err) {
@@ -46,7 +46,7 @@ const GameLobby = () => {
     // ── Fetch worlds для модалки ──────────────────────────────────────────────
     const fetchWorlds = async () => {
         try {
-            const res = await authApi().get('/worlds/');
+            const res = await authApi.get('/worlds/');
             setWorlds(res.data);
         } catch (err) {
             console.error(err);
@@ -63,7 +63,7 @@ const GameLobby = () => {
         if (!sessionName.trim()) { setCreateError('Введіть назву сесії'); return; }
         setIsCreating(true); setCreateError('');
         try {
-            const res = await authApi().post('/table/create/', { name: sessionName });
+            const res = await authApi.post('/table/create/', { name: sessionName });
             navigate(`/table/${res.data.code}`);
         } catch (err) {
             setCreateError('Не вдалось створити сесію');
@@ -76,7 +76,7 @@ const GameLobby = () => {
         if (!joinCode.trim()) { setJoinError('Введіть код сесії'); return; }
         setIsJoining(true); setJoinError('');
         try {
-            const res = await authApi().post('/table/join/', { code: joinCode.toUpperCase() });
+            const res = await authApi.post('/table/join/', { code: joinCode.toUpperCase() });
             navigate(`/table/${res.data.code}`);
         } catch (err) {
             if (err.response?.status === 404) setJoinError('Сесію не знайдено');
@@ -89,7 +89,7 @@ const GameLobby = () => {
     const handleDelete = async (pk) => {
         if (!window.confirm('Видалити цей стіл?')) return;
         try {
-            await authApi().delete(`/table/my/${pk}/`);
+            await authApi.delete(`/table/my/${pk}/`);
             setMasterSessions((prev) => prev.filter((s) => s.id !== pk));
         } catch (err) {
             console.error(err);
@@ -102,7 +102,7 @@ const GameLobby = () => {
         setWikiForm({ world: '', is_enabled: false });
         // Спробуємо завантажити існуючі налаштування
         try {
-            const res = await authApi().get(`/sessions/${session.id}/wiki/`);
+            const res = await authApi.get(`/sessions/${session.id}/wiki/`);
             setWikiForm({
                 world:      res.data.world || '',
                 is_enabled: res.data.is_enabled,
@@ -115,7 +115,7 @@ const GameLobby = () => {
     const handleSaveWiki = async () => {
         setSavingWiki(true);
         try {
-            await authApi().post(`/sessions/${wikiModal.sessionId}/wiki/`, {
+            await authApi.post(`/sessions/${wikiModal.sessionId}/wiki/`, {
                 world:      wikiForm.world || null,
                 is_enabled: wikiForm.is_enabled,
             });

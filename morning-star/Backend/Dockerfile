@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
-COPY reqirement.txt .
-RUN pip install --no-cache-dir -r reqirement.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 

@@ -1,13 +1,12 @@
-from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Character
-from .serializers import CharacterSerializer
-from datetime import timedelta
-from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
-from .models import ShareToken
+from django.utils import timezone
+from datetime import timedelta
+from .models import Character, ShareToken
+from .serializers import CharacterSerializer
 
 
 # Create your views here.
@@ -18,28 +17,22 @@ class CharacterCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         if Character.objects.filter(owner=user).count() >= 12:
-            raise ValueError("To much character")
+            raise ValidationError({"error": "Too many characters (max 12)"})
         serializer.save(owner=user)
-
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class CharacterListView(generics.ListAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Character.objects.filter(owner=self.request.user)
+        return Character.objects.filter(owner=self.request.user).select_related('owner')
 
 class CharacterDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Character.objects.filter(owner=self.request.user)
+        return Character.objects.filter(owner=self.request.user).select_related('owner')
 
 class ShareTokenCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -76,7 +69,7 @@ class ShareTokenCreateView(APIView):
 
 
 class SharedCharacterView(APIView):
-    permission_classes = []  # Public — no auth required
+    permission_classes = [AllowAny]
 
     def get(self, request, token):
         share = ShareToken.objects.filter(token=token).select_related('character').first()

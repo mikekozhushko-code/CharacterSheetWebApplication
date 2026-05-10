@@ -1,122 +1,65 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 import { LanguageProvider } from './context/LanguageContext';
-
-import LoginPage from './pages/LoginPage';
-import RegistrationPage from './pages/RegistrationPage';
-import Characters from './pages/Characters.jsx';
-import Wardrobe_c from './pages/Wardrobe_c';
-import Character_info from './pages/Character_info';
-import News from './pages/News';
-import Main from './pages/Main';
-import About from './pages/About';
-import Profile from './pages/Profile';
-import PrivateRoute from './components/PrivateRoute';
-import SharedCharacter from './pages/SharedCharacter.jsx';
-import HomePage from './pages/HomePage.jsx'
-import PublicRoute from './components/PublicRoute.jsx';
-import GameLobby from './pages/Gamelobby.jsx';
-import GameTable from './pages/GameTable.jsx';
 import { WorldBuilderProvider } from './context/WorldBuilderContext';
-import WorldBuilder from './pages/WorldBuilder';
-import WorldEditor from './pages/WorldEditor';
-import WikiView from './components/worldbuilder/WikiView';
+import ErrorBoundary from './components/ErrorBoundary';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute.jsx';
 
+const LoginPage       = lazy(() => import('./pages/LoginPage'));
+const RegistrationPage= lazy(() => import('./pages/RegistrationPage'));
+const Characters      = lazy(() => import('./pages/Characters.jsx'));
+const Wardrobe_c      = lazy(() => import('./pages/Wardrobe_c'));
+const Character_info  = lazy(() => import('./pages/Character_info'));
+const News            = lazy(() => import('./pages/News'));
+const Main            = lazy(() => import('./pages/Main'));
+const About           = lazy(() => import('./pages/About'));
+const Profile         = lazy(() => import('./pages/Profile'));
+const SharedCharacter = lazy(() => import('./pages/SharedCharacter.jsx'));
+const GameLobby       = lazy(() => import('./pages/Gamelobby.jsx'));
+const GameTable       = lazy(() => import('./pages/GameTable.jsx'));
+const WorldBuilder    = lazy(() => import('./pages/WorldBuilder'));
+const WorldEditor     = lazy(() => import('./pages/WorldEditor'));
+const WikiView        = lazy(() => import('./components/worldbuilder/WikiView'));
+
+const PageLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#0d0d0d', color: '#ffc400' }}>
+    Loading...
+  </div>
+);
 
 function App() {
   return (
-    <LanguageProvider>
-      <WorldBuilderProvider>
-    <Routes>
-      {/* <Route path="/home" element={
-        <HomePage />
-        } /> */}
+    <ErrorBoundary>
+      <LanguageProvider>
+        <WorldBuilderProvider>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
+              <Route path="/registration" element={<PublicRoute><RegistrationPage /></PublicRoute>} />
 
-      <Route path="/" element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } />
+              <Route path="/profile"     element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/character"   element={<PrivateRoute><Characters /></PrivateRoute>} />
+              <Route path="/character-info/:id/edit/" element={<PrivateRoute><Character_info /></PrivateRoute>} />
+              <Route path="/wardrobe"    element={<PrivateRoute><Wardrobe_c /></PrivateRoute>} />
+              <Route path="/news"        element={<PrivateRoute><News /></PrivateRoute>} />
+              <Route path="/about"       element={<PrivateRoute><About /></PrivateRoute>} />
+              <Route path="/main"        element={<PrivateRoute><Main /></PrivateRoute>} />
 
-      <Route path="/table" element={
-        <PrivateRoute>
-            <GameLobby />
-        </PrivateRoute>
-      } />
-      <Route path="/table/:code" element={
-          <PrivateRoute>
-              <GameTable />
-          </PrivateRoute>
-      } />
+              <Route path="/table"       element={<PrivateRoute><GameLobby /></PrivateRoute>} />
+              <Route path="/table/:code" element={<PrivateRoute><GameTable /></PrivateRoute>} />
 
-      <Route path="/registration" element={
-        <PublicRoute>
-          <RegistrationPage />
-        </PublicRoute>
-      } />
+              <Route path="/worldbuilder"     element={<PrivateRoute><WorldBuilder /></PrivateRoute>} />
+              <Route path="/worldbuilder/:id" element={<PrivateRoute><WorldEditor /></PrivateRoute>} />
+              <Route path="/wiki/:session_id" element={<PrivateRoute><WikiView /></PrivateRoute>} />
 
-      <Route path="/wardrobe" element={
-        <PrivateRoute>
-          <Wardrobe_c />
-        </PrivateRoute>
-      } />
-
-      <Route path="/character" element={
-        <PrivateRoute>
-          <Characters />
-        </PrivateRoute>
-      } />
-
-      <Route path="/news" element={
-        <PrivateRoute>
-          <News />
-        </PrivateRoute>
-      } />
-
-      <Route path="/about" element={
-        <PrivateRoute>
-          <About />
-        </PrivateRoute>
-      } />
-
-      <Route path="/main" element={
-        <PrivateRoute>
-          <Main />
-        </PrivateRoute>
-      } />
-
-      <Route path="/character-info/:id/edit/" element={
-        <PrivateRoute>
-          <Character_info />
-        </PrivateRoute>
-      } />
-
-      <Route path="/shared/:token" element={
-        <PrivateRoute>
-          <SharedCharacter />
-        </PrivateRoute>
-      } />
-
-      <Route path="/profile" element={
-        <PrivateRoute>
-          <Profile />
-        </PrivateRoute>
-      } />
-
-      <Route path="/worldbuilder" element={
-        <PrivateRoute><WorldBuilder /></PrivateRoute>
-      } />
-      <Route path="/worldbuilder/:id" element={
-        <PrivateRoute><WorldEditor /></PrivateRoute>
-      } />
-      <Route path="/wiki/:session_id" element={
-        <PrivateRoute><WikiView /></PrivateRoute>
-      } />
-
-      </Routes>
-      </WorldBuilderProvider>
-    </LanguageProvider>
+              <Route path="/shared/:token" element={<SharedCharacter />} />
+            </Routes>
+          </Suspense>
+        </WorldBuilderProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

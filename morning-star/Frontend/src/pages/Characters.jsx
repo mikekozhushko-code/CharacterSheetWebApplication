@@ -1,38 +1,30 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Wardrob_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { authApi } from "../Api.jsx";
-import { useState, useEffect } from 'react';
 
 const Characters = () => {
     const [characters, setCharacters] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        authApi().get("/characters/")
+        authApi.get("/characters/")
             .then(res => setCharacters(res.data))
             .catch(err => console.error(err));
     }, []);
 
     const handleCreateCharacter = async () => {
         try {
-            const res = await authApi().post("/characters/create/", {
-                name: "New Character",
-            });
-            const newCharacterId = res.data.id;
-            alert("Character create success");
-            navigate(`/character-info/${newCharacterId}/edit`);
+            const res = await authApi.post("/characters/create/", { name: "New Character" });
+            navigate(`/character-info/${res.data.id}/edit`);
         } catch (error) {
-            alert(error);
+            console.error("Create character error:", error);
         }
     };
 
-    const handleClick = (id) => {
-        navigate(`/character-info/${id}/edit`);
-    }
+    const handleClick = (id) => navigate(`/character-info/${id}/edit`);
 
     return (
         <div className="wardrobe-wrapper">
@@ -45,7 +37,6 @@ const Characters = () => {
                             <div className="character" key={char.id} onClick={() => handleClick(char.id)}>
                                 <div className="projection-container">
                                     <img className="projection-image" src={char.avatar} alt="Projection" />
-
                                     <div className="projection-stats">
                                         <div className="stat-block">
                                             <span className="stat-label">STR</span>
@@ -62,7 +53,7 @@ const Characters = () => {
                                             <span className="stat-value">{char.con}</span>
                                             <span className="stat-modifier">(+{char.con_save})</span>
                                         </div>
-                                        <div className="stat-block ">
+                                        <div className="stat-block">
                                             <span className="stat-label">INT</span>
                                             <span className="stat-value">{char.int}</span>
                                             <span className="stat-modifier">(+{char.int_save})</span>

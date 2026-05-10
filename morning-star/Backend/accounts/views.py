@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,6 +21,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user.profile
 
 class CheckUniqueView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         username = request.query_params.get("username")
         email = request.query_params.get("email")

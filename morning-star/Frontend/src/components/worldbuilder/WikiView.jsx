@@ -54,7 +54,7 @@ export default function WikiView() {
   const [activeCard, setActiveCard] = useState(null);
 
   useEffect(() => {
-    authApi()
+    authApi
       .get(`/sessions/${session_id}/wiki/view/`)
       .then((res) => setWiki(res.data))
       .catch((e) => {

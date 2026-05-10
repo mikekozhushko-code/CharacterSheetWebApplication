@@ -4,7 +4,7 @@ import '../styles/Profile_style.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
-import { authApi } from '../Api.jsx';
+import { authApi, mediaUrl } from '../Api.jsx';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ const ShareModal = ({ isOpen, onClose, characterId }) => {
         setIsLoading(true);
         setError('');
         try {
-            const res = await authApi().post(`/characters/${characterId}/share/`, {
+            const res = await authApi.post(`/characters/${characterId}/share/`, {
                 permission,
                 duration,
             });
@@ -213,7 +213,7 @@ const CharacterCard = ({ char, onOpen, onShare }) => {
             <div className="epic-card-frame"/>
             <div
                 className="epic-card-bg"
-                style={{ backgroundImage: `url(http://localhost:8000${char.avatar})`, backgroundColor: '#1a120b' }}
+                style={{ backgroundImage: char.avatar ? `url(${mediaUrl(char.avatar)})` : 'none', backgroundColor: '#1a120b' }}
             />
             <div className="epic-card-content">
                 <div className="epic-card-header">
@@ -263,7 +263,7 @@ const Profile = () => {
 
     // ── Fetch profile on mount ────────────────────────────────────────────────
     useEffect(() => {
-        authApi().get('/profile/')
+        authApi.get('/profile/')
             .then((res) => {
                 setUser(res.data);
                 setTheme(res.data.theme ?? 'tavern');
@@ -276,7 +276,7 @@ const Profile = () => {
 
     const changeTheme = (newTheme) => {
         setTheme(newTheme);
-        authApi().patch('/profile/', { theme: newTheme })
+        authApi.patch('/profile/', { theme: newTheme })
             .catch((err) => console.error('Theme update error:', err));
     };
 
@@ -288,10 +288,9 @@ const Profile = () => {
     const saveChanges = async () => {
         setIsSaving(true);
         try {
-            const res = await authApi().patch('/profile/', formData);
+            const res = await authApi.patch('/profile/', formData);
             setUser(res.data);
             setIsEditingEmail(false);
-            alert(t('updateSuccess'));
         } catch (err) {
             console.error('PATCH /profile error:', err);
         } finally {
@@ -304,7 +303,7 @@ const Profile = () => {
         if (!file) return;
         const formDataObj = new FormData();
         formDataObj.append('avatar', file);
-        authApi()
+        authApi
             .patch('/profile/', formDataObj, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then((res) => setUser(res.data))
             .catch((err) => console.error('Avatar upload error:', err));
@@ -312,12 +311,13 @@ const Profile = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
         navigate('/');
     };
 
     const handleCreateCharacter = async () => {
         try {
-            const res = await authApi().post('/characters/create/', { name: 'New Character' });
+            const res = await authApi.post('/characters/create/', { name: 'New Character' });
             navigate(`/character-info/${res.data.id}/edit`);
         } catch (error) {
             console.error('Create character error:', error);

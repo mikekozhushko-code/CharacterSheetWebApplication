@@ -6,7 +6,9 @@ import Footer from '../components/Footer';
 import { api } from "../Api.jsx";
 
 const LoginPage = () => {
-    const [form, setForm] = useState({ username: "", password: "" });
+    const [form, setForm]       = useState({ username: "", password: "" });
+    const [error, setError]     = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) =>
@@ -14,17 +16,20 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
+        setIsLoading(true);
         try {
             const res = await api.post("/token/", form);
             localStorage.setItem("token", res.data.access);
             localStorage.setItem("refresh", res.data.refresh);
-            alert("Login correct");
-            navigate("/profile")
-        } catch (error) {
-            alert(`Error: ${error.message}`);
+            navigate("/profile");
+        } catch (err) {
+            const msg = err.response?.data?.detail || "Invalid username or password";
+            setError(msg);
+        } finally {
+            setIsLoading(false);
         }
     };
-
 
     return (
         <>
@@ -45,15 +50,31 @@ const LoginPage = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="enter">
                                 <label className="login-form-text" htmlFor="username"><b>Login</b></label>
-                                <input className="input-login" type="text" name="username" onChange={handleChange} required />
+                                <input
+                                    className="input-login"
+                                    type="text"
+                                    name="username"
+                                    onChange={handleChange}
+                                    required
+                                />
                             </div>
 
                             <div className="enter">
                                 <label className="login-form-text" htmlFor="password"><b>Password</b></label>
-                                <input className="input-login" type="password" name="password" onChange={handleChange} required />
+                                <input
+                                    className="input-login"
+                                    type="password"
+                                    name="password"
+                                    onChange={handleChange}
+                                    required
+                                />
                             </div>
 
-                            <button className="button-login" type="submit">Sign in</button>
+                            {error && <p className="error" style={{ color: '#e57373', fontSize: '13px', margin: '4px 0' }}>{error}</p>}
+
+                            <button className="button-login" type="submit" disabled={isLoading}>
+                                {isLoading ? "Signing in..." : "Sign in"}
+                            </button>
                         </form>
                         <button className="button-login" type="button">
                             Sign in by Google
@@ -66,7 +87,6 @@ const LoginPage = () => {
                                 Sign Up
                             </Link>
                         </div>
-
                     </div>
                 </div>
             </main>

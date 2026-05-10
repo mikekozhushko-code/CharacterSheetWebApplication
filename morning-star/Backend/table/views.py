@@ -1,7 +1,14 @@
+import os
+import uuid
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
+from django.conf import settings
 from .models import GameSession, Scene
 from .serializers import GameSessionSerializer, SceneSerializer
 
@@ -38,7 +45,8 @@ class SessionDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return GameSession.objects.prefetch_related('scenes').get(
+        return get_object_or_404(
+            GameSession.objects.prefetch_related('scenes'),
             code=self.kwargs['code']
         )
 
@@ -46,7 +54,7 @@ class SceneListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, code):
-        session = GameSession.objects.get(code=code)
+        session = get_object_or_404(GameSession, code=code)
         if session.master != request.user:
             return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         order = session.scenes.count()
@@ -61,22 +69,44 @@ class SceneDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, code, scene_id):
-        session = GameSession.objects.get(code=code)
+        session = get_object_or_404(GameSession, code=code)
         if session.master != request.user:
             return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         Scene.objects.filter(id=scene_id, session=session).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def patch(self, request, code, scene_id):
-        session = GameSession.objects.get(code=code)
+        session = get_object_or_404(GameSession, code=code)
         if session.master != request.user:
             return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
-        scene = Scene.objects.get(id=scene_id, session=session)
+        scene = get_object_or_404(Scene, id=scene_id, session=session)
         serializer = SceneSerializer(scene, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TableImageUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes     = [MultiPartParser]
+    MAX_MB             = 5
+    ALLOWED_TYPES      = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+
+    def post(self, request):
+        file = request.FILES.get('image')
+        if not file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if file.content_type not in self.ALLOWED_TYPES:
+            return Response({'error': 'Invalid file type'}, status=status.HTTP_400_BAD_REQUEST)
+        if file.size > self.MAX_MB * 1024 * 1024:
+            return Response({'error': f'File too large (max {self.MAX_MB}MB)'}, status=status.HTTP_400_BAD_REQUEST)
+
+        ext  = os.path.splitext(file.name)[1].lower()
+        name = f'{uuid.uuid4().hex}{ext}'
+        path = default_storage.save(f'table_images/{name}', ContentFile(file.read()))
+        url  = request.build_absolute_uri(settings.MEDIA_URL + path)
+        return Response({'url': url}, status=status.HTTP_201_CREATED)
+
 
 class MySessionsView(APIView):
     permission_classes = [IsAuthenticated]

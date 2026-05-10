@@ -600,7 +600,7 @@ const Character_info = () => {
     /** Universal PATCH — accepts any payload, syncs the full response. */
     const patch = useCallback(async (payload) => {
         try {
-            const res = await authApi().patch(`/character-info/${id}/`, payload);
+            const res = await authApi.patch(`/character-info/${id}/`, payload);
             syncFromResponse(res.data);
         } catch (err) {
             console.error('PATCH /character-info error:', err);
@@ -613,7 +613,7 @@ const Character_info = () => {
     // ── Initial data fetch ────────────────────────────────────────────────────
 
     useEffect(() => {
-        authApi()
+        authApi
             .get(`/character-info/${id}/`)
             .then((res) => syncFromResponse(res.data))
             .catch((err) => console.error('GET /character-info error:', err));
@@ -633,7 +633,7 @@ const Character_info = () => {
         if (!file) return;
         const formData = new FormData();
         formData.append('avatar', file);
-        authApi()
+        authApi
             .patch(`/character-info/${id}/`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then((res) => syncFromResponse(res.data))
             .catch((err) => console.error('Avatar upload error:', err.response?.data || err));
@@ -652,7 +652,7 @@ const Character_info = () => {
             ? proficiencies.filter((n) => n !== skillName)
             : [...proficiencies, skillName];
         try {
-            const res = await authApi().patch(`/character-info/${id}/`, { proficiencies: updated });
+            const res = await authApi.patch(`/character-info/${id}/`, { proficiencies: updated });
             setCharacter(res.data);
             setSkills(res.data.skills ?? []);
         } catch (err) {

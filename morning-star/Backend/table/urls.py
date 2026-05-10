@@ -1,10 +1,11 @@
 from django.urls import path
 from .views import (
     CreateSessionView, JoinSessionView, SessionDetailView,
-    SceneListCreateView, SceneDetailView, MySessionsView
+    SceneListCreateView, SceneDetailView, MySessionsView, TableImageUploadView
 )
 
 urlpatterns = [
+    path('table/upload/',                           TableImageUploadView.as_view(),name='table_upload'),
     path('table/create/',                           CreateSessionView.as_view(),   name='table_create'),
     path('table/join/',                             JoinSessionView.as_view(),     name='table_join'),
     path('table/my/',                               MySessionsView.as_view(),      name='my_sessions'),

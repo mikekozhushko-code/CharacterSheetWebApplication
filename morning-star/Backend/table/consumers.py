@@ -38,6 +38,7 @@ class TableConsumer(AsyncWebsocketConsumer):
             'reveal_scene':  self.handle_reveal_scene,
             'delete_scene':  self.handle_delete_scene,
             'rename_scene':  self.handle_rename_scene,
+            'update_grid':   self.handle_update_grid,
         }
         handler = handlers.get(msg_type)
         if handler:
@@ -146,6 +147,29 @@ class TableConsumer(AsyncWebsocketConsumer):
                 'scene_id': scene_id, 'name': name
             }}
         })
+
+    async def handle_update_grid(self, payload):
+        if not await self.is_master():
+            return
+        # Зберігаємо в БД
+        await self.save_grid(payload.get('scene_id'), payload.get('grid', {}))
+        # Розсилаємо всім
+        await self.channel_layer.group_send(self.room_group, {
+            'type':    'broadcast',
+            'message': {'type': 'update_grid', 'payload': payload}
+        })
+
+    @database_sync_to_async
+    def save_grid(self, scene_id, grid):
+        if not scene_id or not grid:
+            return
+        Scene.objects.filter(id=scene_id).update(
+            grid_enabled = grid.get('enabled', True),
+            grid_snap    = grid.get('snap', False),
+            grid_size    = grid.get('size', 60),
+            grid_color   = grid.get('color', 'rgba(255,255,255,0.08)'),
+            grid_type    = grid.get('type', 'square'),
+        )
 
     # ── Broadcast ─────────────────────────────────────────────────────────────
 

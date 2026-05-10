@@ -12,7 +12,7 @@ export default function CardBlocks({ worldId, cardId, blocks: initialBlocks }) {
     if (!newTitle.trim()) return;
     setAdding(true);
     try {
-      const res = await authApi().post(
+      const res = await authApi.post(
         `/worlds/${worldId}/cards/${cardId}/blocks/`,
         { title: newTitle, content: "", is_visible_in_wiki: false }
       );
@@ -34,7 +34,7 @@ export default function CardBlocks({ worldId, cardId, blocks: initialBlocks }) {
   const handleSave = async (block) => {
     setSaving(block.id);
     try {
-      const res = await authApi().patch(
+      const res = await authApi.patch(
         `/worlds/${worldId}/cards/${cardId}/blocks/${block.id}/`,
         {
           title:              block.title,
@@ -51,7 +51,7 @@ export default function CardBlocks({ worldId, cardId, blocks: initialBlocks }) {
   // ── Видалити блок ─────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!confirm("Видалити цей блок?")) return;
-    await authApi().delete(`/worlds/${worldId}/cards/${cardId}/blocks/${id}/`);
+    await authApi.delete(`/worlds/${worldId}/cards/${cardId}/blocks/${id}/`);
     setBlocks((prev) => prev.filter((b) => b.id !== id));
   };
 
