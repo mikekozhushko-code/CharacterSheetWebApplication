@@ -526,7 +526,7 @@ const GameTable = () => {
                                 {/* Layer 4 — click targets for images */}
                                 <div style={{ ...transformStyle, zIndex: 4, pointerEvents: 'none' }}>
                                     {objects.filter(o => o.type === 'image').map((obj) => (
-                                        <div key={obj.id} style={{ position: 'absolute', left: obj.x, top: obj.y, width: obj.w, height: obj.h, cursor: 'grab', pointerEvents: 'auto' }}>
+                                        <div key={obj.id} onMouseDown={onMouseDown} style={{ position: 'absolute', left: obj.x, top: obj.y, width: obj.w, height: obj.h, cursor: 'grab', pointerEvents: 'auto' }}>
                                             {isMaster && selectedId === obj.id && <div style={resizeHandleStyle} />}
                                         </div>
                                     ))}
