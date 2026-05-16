@@ -1,7 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import GameSession, Scene
+from django.conf import settings
+from .models import GameSession, Scene, SessionPlayer
 
 class TableConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -40,6 +41,7 @@ class TableConsumer(AsyncWebsocketConsumer):
             'rename_scene':  self.handle_rename_scene,
             'update_grid':   self.handle_update_grid,
         }
+        # character_hp_changed is only sent server→client (from characters/views.py), not client→server
         handler = handlers.get(msg_type)
         if handler:
             await handler(payload)
@@ -181,23 +183,54 @@ class TableConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_session_state(self):
         try:
-            session = GameSession.objects.prefetch_related('scenes').get(
-                code=self.session_code
-            )
+            session = GameSession.objects.prefetch_related(
+                'scenes', 'session_players__user', 'session_players__character'
+            ).get(code=self.session_code)
             active = session.active_scene
+
+            # Build players list
+            players = []
+            for sp in session.session_players.all():
+                char = sp.character
+                avatar_url = None
+                if char and char.avatar:
+                    avatar_url = f'{settings.MEDIA_URL}{char.avatar.name}'
+                players.append({
+                    'user_id':        sp.user.id,
+                    'username':       sp.user.username,
+                    'character_id':   char.id if char else None,
+                    'character_name': char.name if char else None,
+                    'character_avatar': avatar_url,
+                    'hp_current':     char.hp_current if char else None,
+                    'hp_max':         char.hp_max if char else None,
+                })
+
+            # Inject fresh HP into character-linked tokens
+            tokens = list(active.tokens) if active else []
+            char_ids = [t['character_id'] for t in tokens if t.get('character_id')]
+            if char_ids:
+                from characters.models import Character
+                chars_hp = {c.id: c for c in Character.objects.filter(id__in=char_ids).only('id', 'hp_current', 'hp_max')}
+                tokens = [
+                    {**t, 'hp_current': chars_hp[t['character_id']].hp_current,
+                           'hp_max':    chars_hp[t['character_id']].hp_max}
+                    if t.get('character_id') and t['character_id'] in chars_hp else t
+                    for t in tokens
+                ]
+
             return {
-                'scenes':          [
+                'scenes': [
                     {'id': s.id, 'name': s.name, 'tokens': s.tokens,
                      'order': s.order, 'is_visible': s.is_visible}
                     for s in session.scenes.all()
                 ],
                 'active_scene_id': active.id if active else None,
                 'is_visible':      active.is_visible if active else False,
-                # токени активної сцени для зворотної сумісності
-                'tokens':          active.tokens if active else [],
+                'tokens':          tokens,
+                'players':         players,
             }
         except GameSession.DoesNotExist:
-            return {'scenes': [], 'active_scene_id': None, 'tokens': []}
+            return {'scenes': [], 'active_scene_id': None, 'tokens': [], 'players': []}
 
     @database_sync_to_async
     def is_master(self):

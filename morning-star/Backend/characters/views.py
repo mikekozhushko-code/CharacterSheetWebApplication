@@ -34,6 +34,35 @@ class CharacterDetailView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         return Character.objects.filter(owner=self.request.user).select_related('owner')
 
+    def perform_update(self, serializer):
+        old_hp = serializer.instance.hp_current
+        instance = serializer.save()
+        hp_fields = {'hp_current', 'hp_max'}
+        if hp_fields & set(serializer.validated_data.keys()):
+            self._broadcast_hp(instance)
+
+    def _broadcast_hp(self, character):
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        from table.models import SessionPlayer
+        channel_layer = get_channel_layer()
+        linked = SessionPlayer.objects.filter(character=character).select_related('session')
+        for sp in linked:
+            async_to_sync(channel_layer.group_send)(
+                f'table_{sp.session.code}',
+                {
+                    'type':    'broadcast',
+                    'message': {
+                        'type': 'character_hp_changed',
+                        'payload': {
+                            'character_id': character.id,
+                            'hp_current':   character.hp_current,
+                            'hp_max':       character.hp_max,
+                        },
+                    },
+                }
+            )
+
 class ShareTokenCreateView(APIView):
     permission_classes = [IsAuthenticated]
 

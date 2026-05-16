@@ -151,7 +151,8 @@ const GameTable = () => {
     const [diceLog,       setDiceLog]       = useState([]);
     const [grid,          setGrid]          = useState(GRID_DEFAULTS);
     const [showGridPanel, setShowGridPanel] = useState(false);
-    const [isUploading,   setIsUploading]   = useState(false);
+    const [isUploading,    setIsUploading]   = useState(false);
+    const [sessionPlayers, setSessionPlayers] = useState([]); // { user_id, username, character_id, character_name, character_avatar, hp_current, hp_max }
 
     const activeSceneIdRef = useRef(activeSceneId);
     useEffect(() => { activeSceneIdRef.current = activeSceneId; }, [activeSceneId]);
@@ -165,6 +166,7 @@ const GameTable = () => {
                 setActiveSceneId(data.payload.active_scene_id);
                 setIsVisible(data.payload.is_visible);
                 setObjects(data.payload.tokens || []);
+                setSessionPlayers(data.payload.players || []);
                 if (data.payload.grid) setGrid(data.payload.grid);
                 break;
             case 'move_token':
@@ -207,6 +209,21 @@ const GameTable = () => {
             case 'update_grid':
                 setGrid(data.payload.grid);
                 break;
+            case 'players_update':
+                setSessionPlayers(data.payload);
+                break;
+            case 'character_hp_changed':
+                setObjects((prev) => prev.map((o) =>
+                    o.character_id === data.payload.character_id
+                        ? { ...o, hp_current: data.payload.hp_current, hp_max: data.payload.hp_max }
+                        : o
+                ));
+                setSessionPlayers((prev) => prev.map((p) =>
+                    p.character_id === data.payload.character_id
+                        ? { ...p, hp_current: data.payload.hp_current, hp_max: data.payload.hp_max }
+                        : p
+                ));
+                break;
             default: break;
         }
     }, []);
@@ -222,10 +239,13 @@ const GameTable = () => {
     } = useCamera(viewportRef, !!session && !showSplash);
 
     // ── Fetch session ─────────────────────────────────────────────────────────
+    const [currentUserId, setCurrentUserId] = useState(null);
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) { navigate('/'); return; }
         const userId = String(JSON.parse(atob(token.split('.')[1])).user_id);
+        setCurrentUserId(Number(userId));
         authApi.get(`/table/${code}/`)
             .then((res) => {
                 setSession(res.data);
@@ -337,6 +357,27 @@ const GameTable = () => {
         if (!selectedId) return;
         setObjects((prev) => { const u = prev.filter((o) => o.id !== selectedId); wsSend('delete_image', { scene_id: activeSceneIdRef.current, tokens: u }); return u; });
         setSelectedId(null);
+    };
+
+    const handleGenerateToken = (player) => {
+        const snapped = snapToGrid(200, 200);
+        const newToken = {
+            id:           Date.now(),
+            type:         'token',
+            ...snapped,
+            w:            grid.size,
+            h:            grid.size,
+            src:          player.character_avatar || null,
+            label:        player.character_name || player.username,
+            character_id: player.character_id,
+            hp_current:   player.hp_current,
+            hp_max:       player.hp_max,
+        };
+        setObjects((prev) => {
+            const u = [...prev, newToken];
+            wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: u });
+            return u;
+        });
     };
 
     // ── Viewport handlers (pan + drag/resize compose here) ───────────────────
@@ -505,22 +546,48 @@ const GameTable = () => {
 
                                 {/* Layer 3 — tokens */}
                                 <div ref={canvasRef} style={{ ...transformStyle, zIndex: 3, backgroundColor: 'transparent', cursor: isPanning.current ? 'grabbing' : 'default' }} onMouseDown={onMouseDown}>
-                                    {objects.map((obj) => (
-                                        <div key={obj.id} style={{
-                                            position: 'absolute', left: obj.x, top: obj.y, width: obj.w, height: obj.h,
-                                            border: selectedId === obj.id ? '2px solid #ffc400' : '1px solid rgba(58,46,30,0)',
-                                            borderRadius: obj.type === 'token' ? '50%' : '4px',
-                                            overflow: 'hidden', cursor: 'grab',
-                                            backgroundColor: obj.type === 'token' ? '#2a1f00' : 'transparent',
-                                            pointerEvents: obj.type === 'image' ? 'none' : 'auto',
-                                        }}>
-                                            {obj.type === 'token' && obj.src && (
-                                                <img src={obj.src} alt={obj.label} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
-                                            )}
-                                            {obj.type === 'token' && !obj.src && <div style={tokenLabelStyle}>{obj.label}</div>}
-                                            {isMaster && selectedId === obj.id && obj.type === 'token' && <div style={resizeHandleStyle} />}
-                                        </div>
-                                    ))}
+                                    {objects.map((obj) => {
+                                        const hpPct = (obj.type === 'token' && obj.hp_max)
+                                            ? Math.max(0, obj.hp_current / obj.hp_max) : null;
+                                        const hpColor = hpPct === null ? null
+                                            : hpPct > 0.5 ? '#4caf50'
+                                            : hpPct > 0.25 ? '#ff9800' : '#f44336';
+                                        return (
+                                            <div key={obj.id} style={{
+                                                position: 'absolute', left: obj.x, top: obj.y, width: obj.w, height: obj.h,
+                                                overflow: 'visible', cursor: 'grab',
+                                                pointerEvents: obj.type === 'image' ? 'none' : 'auto',
+                                            }}>
+                                                {/* The visual circle / rect */}
+                                                <div style={{
+                                                    width: '100%', height: '100%',
+                                                    border: selectedId === obj.id ? '2px solid #ffc400' : '1px solid rgba(58,46,30,0)',
+                                                    borderRadius: obj.type === 'token' ? '50%' : '4px',
+                                                    overflow: 'hidden',
+                                                    backgroundColor: obj.type === 'token' ? '#2a1f00' : 'transparent',
+                                                }}>
+                                                    {obj.type === 'token' && obj.src && (
+                                                        <img src={obj.src} alt={obj.label} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+                                                    )}
+                                                    {obj.type === 'token' && !obj.src && <div style={tokenLabelStyle}>{obj.label}</div>}
+                                                </div>
+                                                {/* HP bar below circle */}
+                                                {hpPct !== null && (
+                                                    <div style={{ position: 'absolute', top: '105%', left: '5%', width: '90%', height: 5, backgroundColor: '#222', borderRadius: 3 }}>
+                                                        <div style={{ width: `${hpPct * 100}%`, height: '100%', backgroundColor: hpColor, borderRadius: 3, transition: 'width 0.3s' }} />
+                                                    </div>
+                                                )}
+                                                {/* HP numbers */}
+                                                {hpPct !== null && (
+                                                    <div style={{ position: 'absolute', top: 'calc(105% + 7px)', left: 0, width: '100%', textAlign: 'center', fontSize: 9, color: '#aaa', pointerEvents: 'none' }}>
+                                                        {obj.hp_current}/{obj.hp_max}
+                                                    </div>
+                                                )}
+                                                {/* Resize handle */}
+                                                {isMaster && selectedId === obj.id && obj.type === 'token' && <div style={resizeHandleStyle} />}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Layer 4 — click targets for images */}
@@ -580,6 +647,56 @@ const GameTable = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Players section */}
+                    <div style={playersSectionStyle}>
+                        <div style={panelLabelStyle}>👥 Гравці</div>
+                        {sessionPlayers.length === 0 && (
+                            <p style={{ color: '#555', fontSize: '11px', textAlign: 'center' }}>Ще немає гравців</p>
+                        )}
+                        {sessionPlayers.map((p) => {
+                            const isMe = p.user_id === currentUserId;
+                            const hpPct = p.hp_max ? Math.max(0, p.hp_current / p.hp_max) : null;
+                            const hpColor = hpPct === null ? null : hpPct > 0.5 ? '#4caf50' : hpPct > 0.25 ? '#ff9800' : '#f44336';
+                            return (
+                                <div key={p.user_id} style={playerCardStyle}>
+                                    <div style={playerAvatarStyle}>
+                                        {p.character_avatar
+                                            ? <img src={p.character_avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <span style={{ fontSize: '14px' }}>🧙</span>}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: '11px', color: p.character_name ? '#ffc400' : '#888', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {p.character_name || p.username}{isMe ? ' ★' : ''}
+                                        </div>
+                                        {!p.character_name && (
+                                            <div style={{ fontSize: '10px', color: '#555' }}>{p.username}</div>
+                                        )}
+                                        {/* HP bar */}
+                                        {hpPct !== null && (
+                                            <div style={{ marginTop: '3px' }}>
+                                                <div style={{ height: 3, backgroundColor: '#222', borderRadius: 2, overflow: 'hidden' }}>
+                                                    <div style={{ width: `${hpPct * 100}%`, height: '100%', backgroundColor: hpColor, transition: 'width 0.3s' }} />
+                                                </div>
+                                                <div style={{ fontSize: '9px', color: '#666', marginTop: '1px' }}>
+                                                    HP {p.hp_current}/{p.hp_max}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* DM: Generate Token button */}
+                                    {isMaster && p.character_id && (
+                                        <button
+                                            onClick={() => handleGenerateToken(p)}
+                                            title="Згенерувати токен"
+                                            style={genTokenBtnStyle}
+                                        >⬡</button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
                     <div style={logSectionStyle}>
                         <div style={panelLabelStyle}>📜 Roll Log</div>
                         <div style={logListStyle}>
@@ -625,6 +742,11 @@ const diceBtnStyle       = { backgroundColor: '#0d0d0d', color: '#ffc400', borde
 const toolBtnStyle       = { backgroundColor: 'transparent', color: '#e0d6c8', border: '1px solid #3a2e1e', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '13px' };
 const btnDangerStyle     = { backgroundColor: 'transparent', color: '#e57373', border: '1px solid #e57373', borderRadius: '6px', padding: '6px 16px', cursor: 'pointer', fontSize: '13px' };
 const wikiBtn            = { backgroundColor: 'transparent', color: '#81c784', border: '1px solid #81c784', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px' };
+
+const playersSectionStyle = { padding: '10px 12px', borderBottom: '1px solid #3a2e1e', display: 'flex', flexDirection: 'column', gap: '6px' };
+const playerCardStyle     = { display: 'flex', alignItems: 'center', gap: '6px', padding: '5px', borderRadius: '6px', backgroundColor: '#0d0d0d' };
+const playerAvatarStyle   = { width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#2a1f00', border: '1px solid #3a2e1e', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const genTokenBtnStyle    = { background: 'none', border: '1px solid #5e3a03', borderRadius: '4px', color: '#ffc400', cursor: 'pointer', fontSize: '12px', padding: '2px 5px', flexShrink: 0, lineHeight: 1.2 };
 
 const splashStyle      = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a0805', backgroundImage: 'radial-gradient(ellipse at center, #1a1005 0%, #0a0805 70%)' };
 const splashInnerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' };

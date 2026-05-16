@@ -9,8 +9,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from .models import GameSession, Scene
-from .serializers import GameSessionSerializer, SceneSerializer
+from .models import GameSession, Scene, SessionPlayer
+from .serializers import GameSessionSerializer, SceneSerializer, SessionPlayerSerializer
 
 class CreateSessionView(generics.CreateAPIView):
     serializer_class   = GameSessionSerializer
@@ -36,6 +36,7 @@ class JoinSessionView(APIView):
         try:
             session = GameSession.objects.get(code=code, is_active=True)
             session.players.add(request.user)
+            SessionPlayer.objects.get_or_create(session=session, user=request.user)
             return Response(GameSessionSerializer(session).data)
         except GameSession.DoesNotExist:
             return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -108,6 +109,46 @@ class TableImageUploadView(APIView):
         return Response({'url': url}, status=status.HTTP_201_CREATED)
 
 
+class SessionPlayersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, code):
+        session = get_object_or_404(GameSession, code=code)
+        players = SessionPlayer.objects.filter(session=session).select_related('user', 'character')
+        return Response(SessionPlayerSerializer(players, many=True, context={'request': request}).data)
+
+    def post(self, request, code):
+        """Player selects or deselects their character for this session."""
+        session      = get_object_or_404(GameSession, code=code)
+        character_id = request.data.get('character_id')
+
+        sp, _ = SessionPlayer.objects.get_or_create(session=session, user=request.user)
+
+        if character_id:
+            from characters.models import Character
+            character = get_object_or_404(Character, id=character_id, owner=request.user)
+            sp.character = character
+        else:
+            sp.character = None
+        sp.save()
+
+        # Broadcast updated player list to all clients in the session
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        all_players = SessionPlayer.objects.filter(session=session).select_related('user', 'character')
+        players_data = SessionPlayerSerializer(all_players, many=True, context={'request': request}).data
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'table_{session.code}',
+            {
+                'type':    'broadcast',
+                'message': {'type': 'players_update', 'payload': list(players_data)},
+            }
+        )
+
+        return Response(SessionPlayerSerializer(sp, context={'request': request}).data)
+
+
 class MySessionsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -120,9 +161,26 @@ class MySessionsView(APIView):
             players=request.user
         ).prefetch_related('scenes').order_by('-created_at')
 
+        joined_data = []
+        for session in joined_sessions:
+            s_data = GameSessionSerializer(session).data
+            try:
+                sp = SessionPlayer.objects.select_related('character').get(
+                    session=session, user=request.user
+                )
+                char = sp.character
+                s_data['my_character'] = {
+                    'id':     char.id if char else None,
+                    'name':   char.name if char else None,
+                    'avatar': request.build_absolute_uri(char.avatar.url) if char and char.avatar else None,
+                }
+            except SessionPlayer.DoesNotExist:
+                s_data['my_character'] = None
+            joined_data.append(s_data)
+
         return Response({
             'master': GameSessionSerializer(master_sessions, many=True).data,
-            'joined': GameSessionSerializer(joined_sessions, many=True).data,
+            'joined': joined_data,
         })
 
     def delete(self, request, pk=None):

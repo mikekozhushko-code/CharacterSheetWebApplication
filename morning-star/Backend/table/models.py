@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from accounts.models import CustomUser
+from django.conf import settings
 
 class GameSession(models.Model):
     code         = models.CharField(max_length=8, unique=True, editable=False)
@@ -46,3 +47,19 @@ class Scene(models.Model):
 
     def __str__(self):
         return f"{self.session.name} — {self.name}"
+
+
+class SessionPlayer(models.Model):
+    session   = models.ForeignKey(GameSession, on_delete=models.CASCADE, related_name='session_players')
+    user      = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    character = models.ForeignKey(
+        'characters.Character', on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    class Meta:
+        unique_together = ('session', 'user')
+
+    def __str__(self):
+        char_name = self.character.name if self.character else '—'
+        return f"{self.user.username} → {char_name} [{self.session.code}]"

@@ -29,6 +29,11 @@ const GameLobby = () => {
     const [savingWiki,   setSavingWiki]   = useState(false);
     const [wikiForm,     setWikiForm]     = useState({ world: '', is_enabled: false });
 
+    // ── Character select modal state ──────────────────────────────────────────
+    const [charModal,    setCharModal]    = useState(null); // { sessionCode }
+    const [myCharacters, setMyCharacters] = useState([]);
+    const [savingChar,   setSavingChar]   = useState(false);
+
     // ── Fetch sessions ────────────────────────────────────────────────────────
     const fetchSessions = async () => {
         setIsLoading(true);
@@ -93,6 +98,46 @@ const GameLobby = () => {
             setMasterSessions((prev) => prev.filter((s) => s.id !== pk));
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    // ── Character select modal ────────────────────────────────────────────────
+    const openCharModal = async (session) => {
+        setCharModal({ sessionCode: session.code, sessionId: session.id });
+        try {
+            const res = await authApi.get('/characters/');
+            setMyCharacters(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleSelectCharacter = async (characterId) => {
+        if (!charModal) return;
+        setSavingChar(true);
+        try {
+            await authApi.post(`/table/${charModal.sessionCode}/players/`, {
+                character_id: characterId,
+            });
+            // Update local joined sessions to reflect new character
+            setJoinedSessions(prev => prev.map(s => {
+                if (s.id !== charModal.sessionId) return s;
+                if (!characterId) return { ...s, my_character: null };
+                const char = myCharacters.find(c => c.id === characterId);
+                return {
+                    ...s,
+                    my_character: {
+                        id:     char?.id,
+                        name:   char?.name,
+                        avatar: char?.avatar || null,
+                    },
+                };
+            }));
+            setCharModal(null);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSavingChar(false);
         }
     };
 
@@ -232,34 +277,51 @@ const GameLobby = () => {
                             <div>
                                 <h3 style={sectionTitleStyle}>🎮 Столи де я граю</h3>
                                 <div style={tableListStyle}>
-                                    {joinedSessions.map((s) => (
-                                        <div key={s.id} style={tableRowStyle}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <span style={{ color: '#e0d6c8', fontWeight: 'bold', fontSize: '15px' }}>
-                                                    {s.name}
-                                                </span>
-                                                <span style={{ color: '#555', fontSize: '12px', letterSpacing: '2px' }}>
-                                                    {s.code}
-                                                </span>
-                                                <span style={{ color: '#444', fontSize: '11px' }}>
-                                                    {new Date(s.created_at).toLocaleDateString()}
-                                                </span>
+                                    {joinedSessions.map((s) => {
+                                        const myChar = s.my_character;
+                                        return (
+                                            <div key={s.id} style={tableRowStyle}>
+                                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                    {/* Avatar */}
+                                                    <div style={charAvatarStyle}>
+                                                        {myChar?.avatar
+                                                            ? <img src={myChar.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            : <span style={{ fontSize: '20px' }}>🧙</span>}
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <span style={{ color: '#e0d6c8', fontWeight: 'bold', fontSize: '15px' }}>
+                                                            {s.name}
+                                                        </span>
+                                                        <span style={{ color: myChar?.name ? '#ffc400' : '#555', fontSize: '12px' }}>
+                                                            {myChar?.name || 'Персонаж не обраний'}
+                                                        </span>
+                                                        <span style={{ color: '#444', fontSize: '11px', letterSpacing: '2px' }}>
+                                                            {s.code}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                    <button
+                                                        style={btnCharStyle}
+                                                        onClick={() => openCharModal(s)}
+                                                        title="Вибрати персонажа"
+                                                    >
+                                                        🧙 Персонаж
+                                                    </button>
+                                                    <button
+                                                        style={btnWikiStyle}
+                                                        onClick={() => navigate(`/wiki/${s.id}`)}
+                                                        title="Відкрити вікі лору"
+                                                    >
+                                                        📖 Вікі
+                                                    </button>
+                                                    <button style={btnEnterStyle} onClick={() => navigate(`/table/${s.code}`)}>
+                                                        Увійти
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {/* Гравець може відкрити вікі якщо воно є */}
-                                                <button
-                                                    style={btnWikiStyle}
-                                                    onClick={() => navigate(`/wiki/${s.id}`)}
-                                                    title="Відкрити вікі лору"
-                                                >
-                                                    📖 Вікі
-                                                </button>
-                                                <button style={btnEnterStyle} onClick={() => navigate(`/table/${s.code}`)}>
-                                                    Увійти
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -343,6 +405,68 @@ const GameLobby = () => {
                 </div>
             )}
             {showDungeon && <DungeonCrawler onClose={() => setShowDungeon(false)} />}
+
+            {/* ── Character Select Modal ── */}
+            {charModal && (
+                <div style={modalOverlayStyle} onClick={() => setCharModal(null)}>
+                    <div style={{ ...modalStyle, width: '520px' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={modalHeaderStyle}>
+                            <h2 style={{ margin: 0, color: '#ffc400', fontSize: '20px' }}>
+                                🧙 Вибір персонажа
+                            </h2>
+                            <button style={modalCloseBtnStyle} onClick={() => setCharModal(null)}>✕</button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '360px', overflowY: 'auto' }}>
+                            {/* Deselect option */}
+                            <div
+                                style={charCardStyle}
+                                onClick={() => !savingChar && handleSelectCharacter(null)}
+                            >
+                                <div style={{ ...charAvatarStyle, fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>—</div>
+                                <span style={{ color: '#888', fontSize: '14px' }}>Без персонажа</span>
+                            </div>
+
+                            {myCharacters.length === 0 && (
+                                <p style={{ color: '#555', textAlign: 'center', padding: '20px' }}>
+                                    У тебе ще немає персонажів
+                                </p>
+                            )}
+
+                            {myCharacters.map((char) => (
+                                <div
+                                    key={char.id}
+                                    style={charCardStyle}
+                                    onClick={() => !savingChar && handleSelectCharacter(char.id)}
+                                >
+                                    <div style={charAvatarStyle}>
+                                        {char.avatar
+                                            ? <img src={char.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <span style={{ fontSize: '20px' }}>🧙</span>}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <span style={{ color: '#e0d6c8', fontWeight: 'bold', fontSize: '14px' }}>
+                                            {char.name || 'Безіменний'}
+                                        </span>
+                                        <span style={{ color: '#888', fontSize: '12px' }}>
+                                            {char.race} · {char.class_type} · Рівень {char.level}
+                                        </span>
+                                        <span style={{ color: '#555', fontSize: '11px' }}>
+                                            HP: {char.char?.hpCurrent ?? '?'} / {char.char?.hpMax ?? '?'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                            <button style={btnSecondaryStyle} onClick={() => setCharModal(null)}>
+                                Скасувати
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -437,6 +561,23 @@ const wikiPreviewStyle = {
     border: '1px solid rgba(129,199,132,0.3)',
     borderRadius: '8px', padding: '12px 16px',
     display: 'flex', flexDirection: 'column', gap: '4px',
+};
+const btnCharStyle = {
+    backgroundColor: 'transparent', color: '#b39ddb',
+    border: '1px solid #b39ddb', borderRadius: '8px',
+    padding: '8px 14px', fontSize: '13px', cursor: 'pointer',
+};
+const charAvatarStyle = {
+    width: '44px', height: '44px', borderRadius: '50%',
+    overflow: 'hidden', backgroundColor: '#2a1f00',
+    border: '1px solid #3a2e1e', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+};
+const charCardStyle = {
+    display: 'flex', alignItems: 'center', gap: '12px',
+    padding: '10px 14px', borderRadius: '8px',
+    backgroundColor: '#0d0d0d', border: '1px solid #3a2e1e',
+    cursor: 'pointer', transition: 'border-color 0.15s',
 };
 
 export default GameLobby;
