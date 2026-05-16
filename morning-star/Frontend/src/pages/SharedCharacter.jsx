@@ -107,8 +107,13 @@ const SharedCharacter = () => {
 
     const xpPerc = Math.min(((char?.xp ?? 0) / (char?.maxXp ?? 300)) * 100, 100);
 
-    const spellDb       = language === 'uk' ? spellsDataUk : spellsDataEn;
-    const resolvedSpells = spellDb.filter((s) => (character.my_spells ?? []).includes(s.name));
+    // my_spells stores English names — always match against EN db, then swap to UK if needed
+    const resolvedSpells = spellsDataEn
+        .filter((s) => (character.my_spells ?? []).includes(s.name))
+        .map((enSpell) => {
+            if (language !== 'uk') return enSpell;
+            return spellsDataUk.find((ukSpell) => ukSpell.name === enSpell.name) ?? enSpell;
+        });
     const toggleSpellExpand = (name) => setExpandedSpells((p) => ({ ...p, [name]: !p[name] }));
 
     const renderSpellTier = (level) => {
