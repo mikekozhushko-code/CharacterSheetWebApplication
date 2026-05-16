@@ -5,6 +5,10 @@ import { useLanguage } from '../context/LanguageContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/Character_style.css';
+import spellsDataEn from '../data/spells.json';
+import spellsDataUk from '../data/spells-ukr.json';
+
+const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -72,11 +76,12 @@ const ErrorScreen = ({ icon, title, message }) => (
 // ─── Main component ───────────────────────────────────────────────────────────
 
 const SharedCharacter = () => {
-    const { token }         = useParams();
-    const { t }             = useLanguage();
-    const [data, setData]   = useState(null);
-    const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('attacks');
+    const { token }              = useParams();
+    const { t, language }        = useLanguage();
+    const [data, setData]        = useState(null);
+    const [error, setError]      = useState(null);
+    const [activeTab, setActiveTab]       = useState('attacks');
+    const [expandedSpells, setExpandedSpells] = useState({});
 
     useEffect(() => {
         api.get(`/shared/${token}/`)
@@ -101,6 +106,65 @@ const SharedCharacter = () => {
     const { char, stats, skills }   = character;
 
     const xpPerc = Math.min(((char?.xp ?? 0) / (char?.maxXp ?? 300)) * 100, 100);
+
+    const spellDb       = language === 'uk' ? spellsDataUk : spellsDataEn;
+    const resolvedSpells = spellDb.filter((s) => (character.my_spells ?? []).includes(s.name));
+    const toggleSpellExpand = (name) => setExpandedSpells((p) => ({ ...p, [name]: !p[name] }));
+
+    const renderSpellTier = (level) => {
+        const tierSpells = resolvedSpells.filter((s) => s.level === level);
+        const slots      = (character.spell_slots ?? {})[level];
+        const isCantrip  = level === 0;
+        if (!isCantrip && (!slots || slots.max === 0) && tierSpells.length === 0) return null;
+        return (
+            <div className="spell-tier-block" key={level}>
+                <div className="tier-header">
+                    <div className="th-left">
+                        <span className="th-level-badge">{isCantrip ? 'C' : level}</span>
+                        <span className="th-title">{isCantrip ? t('cantrips') : `${t('level')} ${level}`}</span>
+                        {!isCantrip && slots && (
+                            <div className="slot-bubbles">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className={`slot-bubble ${i < (slots.used || 0) ? 'used' : ''}`} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="tier-list-container">
+                    {tierSpells.length === 0
+                        ? <div className="tier-empty">{t('noSpells')}</div>
+                        : tierSpells.map((spell) => {
+                            const isExpanded = expandedSpells[spell.name];
+                            return (
+                                <div
+                                    key={spell.name}
+                                    className={`spell-row-item ${isExpanded ? 'expanded' : ''}`}
+                                    onClick={() => toggleSpellExpand(spell.name)}
+                                >
+                                    <div className="sr-header">
+                                        <div className="sr-name">{spell.name}</div>
+                                        <div className="sr-info">{spell.duration || 'Instant'}</div>
+                                        <div className="sr-info">{spell.range || 'Touch'}</div>
+                                    </div>
+                                    {isExpanded && (
+                                        <div className="sr-details">
+                                            <div className="sr-meta-tags">
+                                                <span>{capitalize(spell.school)}</span>
+                                                <span>{spell.components?.join(', ').toUpperCase()}</span>
+                                                <span>{spell.actionType}</span>
+                                            </div>
+                                            <p>{spell.description}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
+                    }
+                </div>
+            </div>
+        );
+    };
 
     const TABS = [
         { id: 'attacks',    label: t('tabAttacks') },
@@ -279,10 +343,11 @@ const SharedCharacter = () => {
 
                             {/* Spells tab */}
                             {activeTab === 'spells' && (
-                                <div className="deck-pane">
-                                    <p className="sheet-readonly-text" style={{ color: '#888', textAlign: 'center', paddingTop: '40px' }}>
-                                        Spells view coming soon
-                                    </p>
+                                <div className="deck-pane spells-container">
+                                    <div className="spells-col-header">
+                                        <span className="col-h-name">{t('spellName')}</span>
+                                    </div>
+                                    {[0,1,2,3,4,5,6,7,8,9].map((lvl) => renderSpellTier(lvl))}
                                 </div>
                             )}
                         </div>
