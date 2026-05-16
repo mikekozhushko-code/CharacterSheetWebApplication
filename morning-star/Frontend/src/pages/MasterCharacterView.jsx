@@ -91,7 +91,8 @@ const MasterCharacterView = () => {
         .filter((s) => (character.my_spells ?? []).includes(s.name))
         .map((enSpell) => {
             if (language !== 'uk') return enSpell;
-            return spellsDataUk.find((ukSpell) => ukSpell.name === enSpell.name) ?? enSpell;
+            const idx = spellsDataEn.findIndex((s) => s.name === enSpell.name);
+            return (idx >= 0 && idx < spellsDataUk.length) ? spellsDataUk[idx] : enSpell;
         });
     const toggleSpellExpand = (name) => setExpandedSpells((p) => ({ ...p, [name]: !p[name] }));
 
