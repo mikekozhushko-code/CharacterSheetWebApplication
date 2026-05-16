@@ -40,6 +40,8 @@ class TableConsumer(AsyncWebsocketConsumer):
             'delete_scene':  self.handle_delete_scene,
             'rename_scene':  self.handle_rename_scene,
             'update_grid':   self.handle_update_grid,
+            # ── Туман ──
+            'update_fog':    self.handle_update_fog,
         }
         # character_hp_changed is only sent server→client (from characters/views.py), not client→server
         handler = handlers.get(msg_type)
@@ -101,15 +103,17 @@ class TableConsumer(AsyncWebsocketConsumer):
         if current_scene_id:
             await self.save_tokens(current_scene_id, current_tokens)
 
-        # Отримуємо токени нової сцени
-        tokens = await self.set_active_scene(scene_id)
+        # Отримуємо токени, туман і грід нової сцени
+        tokens, fog_zones, grid = await self.set_active_scene(scene_id)
 
         await self.channel_layer.group_send(self.room_group, {
             'type':    'broadcast',
             'message': {'type': 'switch_scene', 'payload': {
                 'scene_id':   scene_id,
                 'is_visible': False,
-                'tokens':     tokens,  # ← токени нової сцени
+                'tokens':     tokens,
+                'fog_zones':  fog_zones,
+                'grid':       grid,
             }}
         })
 
@@ -160,6 +164,22 @@ class TableConsumer(AsyncWebsocketConsumer):
             'type':    'broadcast',
             'message': {'type': 'update_grid', 'payload': payload}
         })
+
+    async def handle_update_fog(self, payload):
+        if not await self.is_master():
+            return
+        scene_id  = payload.get('scene_id')
+        fog_zones = payload.get('fog_zones', [])
+        await self.save_fog(scene_id, fog_zones)
+        await self.channel_layer.group_send(self.room_group, {
+            'type':    'broadcast',
+            'message': {'type': 'update_fog', 'payload': payload}
+        })
+
+    @database_sync_to_async
+    def save_fog(self, scene_id, fog_zones):
+        if scene_id is not None:
+            Scene.objects.filter(id=scene_id).update(fog_zones=fog_zones)
 
     @database_sync_to_async
     def save_grid(self, scene_id, grid):
@@ -228,6 +248,7 @@ class TableConsumer(AsyncWebsocketConsumer):
                 'is_visible':      active.is_visible if active else False,
                 'tokens':          tokens,
                 'players':         players,
+                'fog_zones':       list(active.fog_zones) if active else [],
                 'grid': {
                     'enabled': active.grid_enabled,
                     'snap':    active.grid_snap,
@@ -269,7 +290,13 @@ class TableConsumer(AsyncWebsocketConsumer):
         GameSession.objects.filter(code=self.session_code).update(active_scene_id=scene_id)
         Scene.objects.filter(id=scene_id).update(is_visible=False)
         scene = Scene.objects.get(id=scene_id)
-        return scene.tokens  # ← повертаємо токени
+        return scene.tokens, list(scene.fog_zones), {
+            'enabled': scene.grid_enabled,
+            'snap':    scene.grid_snap,
+            'size':    scene.grid_size,
+            'color':   scene.grid_color,
+            'type':    scene.grid_type,
+        }
 
     @database_sync_to_async
     def reveal_scene(self, scene_id):

@@ -41,6 +41,7 @@ class Scene(models.Model):
     )
     grid_size    = models.IntegerField(default=60)
     grid_color   = models.CharField(max_length=30, default='rgba(255,255,255,0.15)')
+    fog_zones    = models.JSONField(default=list)
 
     class Meta:
         ordering = ['order']

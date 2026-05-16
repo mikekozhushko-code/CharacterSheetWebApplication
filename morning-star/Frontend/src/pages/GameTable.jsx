@@ -154,6 +154,12 @@ const GameTable = () => {
     const [isUploading,    setIsUploading]   = useState(false);
     const [sessionPlayers, setSessionPlayers] = useState([]); // { user_id, username, character_id, character_name, character_avatar, hp_current, hp_max }
 
+    const [fogZones,      setFogZones]      = useState([]);
+    const [fogMode,       setFogMode]       = useState(false);
+    const [fogDrawing,    setFogDrawing]    = useState(null);
+
+    const fogCanvasRef   = useRef(null);
+    const fogStartRef    = useRef(null);
     const activeSceneIdRef = useRef(activeSceneId);
     useEffect(() => { activeSceneIdRef.current = activeSceneId; }, [activeSceneId]);
 
@@ -167,6 +173,7 @@ const GameTable = () => {
                 setIsVisible(data.payload.is_visible);
                 setObjects(data.payload.tokens || []);
                 setSessionPlayers(data.payload.players || []);
+                setFogZones(data.payload.fog_zones || []);
                 if (data.payload.grid) setGrid(data.payload.grid);
                 break;
             case 'move_token':
@@ -187,6 +194,7 @@ const GameTable = () => {
             case 'switch_scene':
                 setActiveSceneId(data.payload.scene_id);
                 setIsVisible(false);
+                setFogZones(data.payload.fog_zones || []);
                 if (data.payload.grid) setGrid(data.payload.grid);
                 setScenes((prev) => {
                     const scene = prev.find((s) => s.id === data.payload.scene_id);
@@ -208,6 +216,9 @@ const GameTable = () => {
                 break;
             case 'update_grid':
                 setGrid(data.payload.grid);
+                break;
+            case 'update_fog':
+                setFogZones(data.payload.fog_zones || []);
                 break;
             case 'players_update':
                 setSessionPlayers(data.payload);
@@ -285,6 +296,94 @@ const GameTable = () => {
         setGrid(newGrid);
         wsSend('update_grid', { grid: newGrid, scene_id: activeSceneIdRef.current });
     };
+
+    // ── Fog of War ────────────────────────────────────────────────────────────
+    const handleUpdateFog = useCallback((zones) => {
+        setFogZones(zones);
+        wsSend('update_fog', { scene_id: activeSceneIdRef.current, fog_zones: zones });
+    }, [wsSend]);
+
+    const handleClearFog = () => handleUpdateFog([]);
+
+    const handleUpdateTokenVision = (tokenId, vision) => {
+        setObjects((prev) => {
+            const updated = prev.map((o) => o.id === tokenId ? { ...o, vision } : o);
+            wsSend('add_image', { scene_id: activeSceneIdRef.current, tokens: updated });
+            return updated;
+        });
+    };
+
+    // Fog drawing handlers (master only, when fogMode is active)
+    const onFogMouseDown = (e) => {
+        if (!fogMode || e.button !== 0) return;
+        e.stopPropagation();
+        const { x, y } = toCanvasCoords(e.clientX, e.clientY);
+        fogStartRef.current = { x, y };
+        setFogDrawing({ x, y, w: 0, h: 0 });
+    };
+
+    const onFogMouseMove = (e) => {
+        if (!fogMode || !fogStartRef.current) return;
+        const { x, y } = toCanvasCoords(e.clientX, e.clientY);
+        const sx = fogStartRef.current.x, sy = fogStartRef.current.y;
+        setFogDrawing({
+            x: Math.min(sx, x), y: Math.min(sy, y),
+            w: Math.abs(x - sx), h: Math.abs(y - sy),
+        });
+    };
+
+    const onFogMouseUp = () => {
+        if (!fogMode || !fogStartRef.current) return;
+        fogStartRef.current = null;
+        if (fogDrawing && fogDrawing.w > 5 && fogDrawing.h > 5) {
+            handleUpdateFog([...fogZones, fogDrawing]);
+        }
+        setFogDrawing(null);
+    };
+
+    // Fog canvas render
+    useEffect(() => {
+        const canvas = fogCanvasRef.current;
+        const viewport = viewportRef.current;
+        if (!canvas || !viewport) return;
+
+        const vw = viewport.clientWidth;
+        const vh = viewport.clientHeight;
+        if (canvas.width !== vw) canvas.width = vw;
+        if (canvas.height !== vh) canvas.height = vh;
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, vw, vh);
+
+        const allZones = fogDrawing ? [...fogZones, fogDrawing] : fogZones;
+        if (allZones.length === 0) return;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = isMaster ? 'rgba(20,10,0,0.55)' : 'rgba(0,0,0,0.92)';
+        allZones.forEach(({ x, y, w: zw, h: zh }) => {
+            ctx.fillRect(x * camera.zoom + camera.x, y * camera.zoom + camera.y, zw * camera.zoom, zh * camera.zoom);
+        });
+        ctx.restore();
+
+        // Cut vision circles
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        objects.forEach((obj) => {
+            if (!obj.vision) return;
+            const cx = (obj.x + obj.w / 2) * camera.zoom + camera.x;
+            const cy = (obj.y + obj.h / 2) * camera.zoom + camera.y;
+            const r  = obj.vision * camera.zoom;
+            const g  = ctx.createRadialGradient(cx, cy, r * 0.55, cx, cy, r);
+            g.addColorStop(0, 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = g;
+            ctx.fill();
+        });
+        ctx.restore();
+    }, [fogZones, fogDrawing, camera, objects, isMaster]);
 
     // ── Scene actions ─────────────────────────────────────────────────────────
     const handleAddScene = () => wsSend('add_scene', { name: `Сцена ${scenes.length + 1}` });
@@ -381,9 +480,9 @@ const GameTable = () => {
     };
 
     // ── Viewport handlers (pan + drag/resize compose here) ───────────────────
-    const onViewportMouseDown = (e) => { onPanStart(e); };
-    const onViewportMouseMove = (e) => { onPanMove(e); onMouseMove(e); };
-    const onViewportMouseUp   = (e) => { onPanEnd(e); onMouseUp(); };
+    const onViewportMouseDown = (e) => { if (fogMode) { onFogMouseDown(e); return; } onPanStart(e); };
+    const onViewportMouseMove = (e) => { if (fogMode) { onFogMouseMove(e); return; } onPanMove(e); onMouseMove(e); };
+    const onViewportMouseUp   = (e) => { if (fogMode) { onFogMouseUp(); return; } onPanEnd(e); onMouseUp(); };
 
     // ── Drag / Resize ─────────────────────────────────────────────────────────
     const getObjectAt = (x, y) => {
@@ -544,8 +643,19 @@ const GameTable = () => {
                                 {/* Layer 2 — grid */}
                                 <GridOverlay camera={camera} grid={grid} viewportRef={viewportRef} zIndex={2} />
 
-                                {/* Layer 3 — tokens */}
-                                <div ref={canvasRef} style={{ ...transformStyle, zIndex: 3, backgroundColor: 'transparent', cursor: isPanning.current ? 'grabbing' : 'default' }} onMouseDown={onMouseDown}>
+                                {/* Layer 3 — fog canvas */}
+                                <canvas
+                                    ref={fogCanvasRef}
+                                    style={{
+                                        position: 'absolute', top: 0, left: 0,
+                                        width: '100%', height: '100%', zIndex: 3,
+                                        pointerEvents: 'none',
+                                        cursor: fogMode ? 'crosshair' : 'default',
+                                    }}
+                                />
+
+                                {/* Layer 4 — tokens */}
+                                <div ref={canvasRef} style={{ ...transformStyle, zIndex: 4, backgroundColor: 'transparent', cursor: fogMode ? 'crosshair' : (isPanning.current ? 'grabbing' : 'default') }} onMouseDown={fogMode ? undefined : onMouseDown}>
                                     {objects.map((obj) => {
                                         const hpPct = (obj.type === 'token' && obj.hp_max)
                                             ? Math.max(0, obj.hp_current / obj.hp_max) : null;
@@ -590,8 +700,8 @@ const GameTable = () => {
                                     })}
                                 </div>
 
-                                {/* Layer 4 — click targets for images */}
-                                <div style={{ ...transformStyle, zIndex: 4, pointerEvents: 'none' }}>
+                                {/* Layer 5 — click targets for images */}
+                                <div style={{ ...transformStyle, zIndex: 5, pointerEvents: fogMode ? 'none' : undefined }}>
                                     {objects.filter(o => o.type === 'image').map((obj) => (
                                         <div key={obj.id} onMouseDown={onMouseDown} style={{ position: 'absolute', left: obj.x, top: obj.y, width: obj.w, height: obj.h, cursor: 'grab', pointerEvents: 'auto' }}>
                                             {isMaster && selectedId === obj.id && <div style={resizeHandleStyle} />}
@@ -626,6 +736,19 @@ const GameTable = () => {
                                         )}
                                     </div>
 
+                                    <button
+                                        style={{ ...toolBtnStyle, color: fogMode ? '#ffc400' : '#e0d6c8', borderColor: fogMode ? '#ffc400' : '#3a2e1e', backgroundColor: fogMode ? '#2a1f00' : 'transparent' }}
+                                        onClick={() => setFogMode(p => !p)}
+                                        title="Намалювати туман (клік+тягни)"
+                                    >🌫 Fog</button>
+                                    {fogZones.length > 0 && (
+                                        <button
+                                            style={{ ...toolBtnStyle, color: '#e57373', borderColor: '#e57373' }}
+                                            onClick={handleClearFog}
+                                            title="Очистити весь туман"
+                                        >✕ Clear Fog</button>
+                                    )}
+
                                     <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center' }}>
                                         <button style={toolBtnStyle} onClick={() => setCamera((c) => ({ ...c, zoom: clamp(c.zoom * 1.2, ZOOM_MIN, ZOOM_MAX) }))}>＋</button>
                                         <button style={toolBtnStyle} onClick={resetCamera}>Reset</button>
@@ -655,48 +778,53 @@ const GameTable = () => {
                             <p style={{ color: '#555', fontSize: '11px', textAlign: 'center' }}>Ще немає гравців</p>
                         )}
                         {sessionPlayers.map((p) => {
-                            const isMe = p.user_id === currentUserId;
-                            const hpPct = p.hp_max ? Math.max(0, p.hp_current / p.hp_max) : null;
+                            const isMe   = p.user_id === currentUserId;
+                            const hpPct  = p.hp_max ? Math.max(0, p.hp_current / p.hp_max) : null;
                             const hpColor = hpPct === null ? null : hpPct > 0.5 ? '#4caf50' : hpPct > 0.25 ? '#ff9800' : '#f44336';
+                            const linkedToken = isMaster && p.character_id
+                                ? objects.find((o) => o.character_id === p.character_id)
+                                : null;
                             return (
-                                <div key={p.user_id} style={playerCardStyle}>
-                                    <div style={playerAvatarStyle}>
-                                        {p.character_avatar
-                                            ? <img src={p.character_avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <span style={{ fontSize: '14px' }}>🧙</span>}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '11px', color: p.character_name ? '#ffc400' : '#888', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {p.character_name || p.username}{isMe ? ' ★' : ''}
+                                <div key={p.user_id} style={{ ...playerCardStyle, flexDirection: 'column', gap: '3px' }}>
+                                    {/* Main row: avatar + info + buttons */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div style={playerAvatarStyle}>
+                                            {p.character_avatar
+                                                ? <img src={p.character_avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                : <span style={{ fontSize: '14px' }}>🧙</span>}
                                         </div>
-                                        {!p.character_name && (
-                                            <div style={{ fontSize: '10px', color: '#555' }}>{p.username}</div>
-                                        )}
-                                        {/* HP bar */}
-                                        {hpPct !== null && (
-                                            <div style={{ marginTop: '3px' }}>
-                                                <div style={{ height: 3, backgroundColor: '#222', borderRadius: 2, overflow: 'hidden' }}>
-                                                    <div style={{ width: `${hpPct * 100}%`, height: '100%', backgroundColor: hpColor, transition: 'width 0.3s' }} />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '11px', color: p.character_name ? '#ffc400' : '#888', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {p.character_name || p.username}{isMe ? ' ★' : ''}
+                                            </div>
+                                            {!p.character_name && <div style={{ fontSize: '10px', color: '#555' }}>{p.username}</div>}
+                                            {hpPct !== null && (
+                                                <div style={{ marginTop: '3px' }}>
+                                                    <div style={{ height: 3, backgroundColor: '#222', borderRadius: 2, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${hpPct * 100}%`, height: '100%', backgroundColor: hpColor, transition: 'width 0.3s' }} />
+                                                    </div>
+                                                    <div style={{ fontSize: '9px', color: '#666', marginTop: '1px' }}>HP {p.hp_current}/{p.hp_max}</div>
                                                 </div>
-                                                <div style={{ fontSize: '9px', color: '#666', marginTop: '1px' }}>
-                                                    HP {p.hp_current}/{p.hp_max}
-                                                </div>
+                                            )}
+                                        </div>
+                                        {isMaster && p.character_id && (
+                                            <div style={{ display: 'flex', gap: '3px' }}>
+                                                <button onClick={() => window.open(`/table/${code}/character/${p.character_id}`, '_blank')} title="Переглянути лист персонажа" style={genTokenBtnStyle}>👁</button>
+                                                <button onClick={() => handleGenerateToken(p)} title="Згенерувати токен" style={genTokenBtnStyle}>⬡</button>
                                             </div>
                                         )}
                                     </div>
-                                    {/* DM: actions for players with a character */}
-                                    {isMaster && p.character_id && (
-                                        <div style={{ display: 'flex', gap: '3px' }}>
-                                            <button
-                                                onClick={() => window.open(`/table/${code}/character/${p.character_id}`, '_blank')}
-                                                title="Переглянути лист персонажа"
-                                                style={genTokenBtnStyle}
-                                            >👁</button>
-                                            <button
-                                                onClick={() => handleGenerateToken(p)}
-                                                title="Згенерувати токен"
-                                                style={genTokenBtnStyle}
-                                            >⬡</button>
+                                    {/* Vision radius row (only if token exists on map) */}
+                                    {linkedToken && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 34 }}>
+                                            <span style={{ fontSize: 9, color: '#666' }}>👁 Vision:</span>
+                                            <input
+                                                type="number" min="0" max="600" step="30"
+                                                value={linkedToken.vision || 0}
+                                                onChange={(e) => handleUpdateTokenVision(linkedToken.id, Number(e.target.value))}
+                                                style={{ width: 40, background: '#0d0d0d', border: '1px solid #3a2e1e', color: '#ffc400', borderRadius: 3, fontSize: 10, padding: '1px 4px', textAlign: 'center' }}
+                                            />
+                                            <span style={{ fontSize: 9, color: '#555' }}>px</span>
                                         </div>
                                     )}
                                 </div>
