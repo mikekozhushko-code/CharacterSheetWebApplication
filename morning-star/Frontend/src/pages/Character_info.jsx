@@ -433,7 +433,7 @@ const GenericEditModal = ({ isOpen, onClose, title, value, onSave, t }) => {
  * Spell grimoire modal — browse the full spell list filtered by class and level,
  * toggle individual spells as prepared / unprepared.
  */
-const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, initialLevelFilter, t, currentSpellsData }) => {
+const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, initialLevelFilter, t, currentSpellsData, toEnglishName }) => {
     const [filterClass, setFilterClass]     = useState('All');
     const [filterLevel, setFilterLevel]     = useState('0');
     const [expandedSpell, setExpandedSpell] = useState(null);
@@ -451,7 +451,11 @@ const SpellSettingsModal = ({ isOpen, onClose, learnedSpells, onToggleSpell, ini
         return classMatch && levelMatch;
     });
 
-    const isLearned  = (name) => learnedSpells.some((s) => s.name === name);
+    // learnedSpells has English objects; name may be Ukrainian — normalize before checking
+    const isLearned = (name) => {
+        const enName = toEnglishName ? toEnglishName(name) : name;
+        return learnedSpells.some((s) => s.name === enName);
+    };
     const toggleDesc = (name) => setExpandedSpell((prev) => (prev === name ? null : name));
 
     return (
@@ -586,16 +590,23 @@ const Character_info = () => {
         if (data.appearance         !== undefined) setAppearance(data.appearance);
         if (data.goals              !== undefined) setGoals(data.goals);
 
-        // Resolve saved spell names back to full spell objects from the local JSON
+        // Always resolve against English DB (canonical). Backward-compat: if name is
+        // Ukrainian (legacy data), find English equivalent by index in spellsDataUk.
         if (data.my_spells !== undefined) {
-            setMySpells(activeSpellsDatabase.filter((s) => data.my_spells.includes(s.name)));
+            const resolved = (data.my_spells ?? []).map((name) => {
+                const enSpell = spellsDataEn.find((s) => s.name === name);
+                if (enSpell) return enSpell;
+                const ukIdx = spellsDataUk.findIndex((s) => s.name === name);
+                return (ukIdx >= 0 && ukIdx < spellsDataEn.length) ? spellsDataEn[ukIdx] : null;
+            }).filter(Boolean);
+            setMySpells(resolved);
         }
 
         // Only replace spell slots if the server returned a non-empty object
         if (data.spell_slots !== undefined && Object.keys(data.spell_slots).length > 0) {
             setSpellSlots(data.spell_slots);
         }
-    }, [activeSpellsDatabase]);
+    }, []);
 
     /** Universal PATCH — accepts any payload, syncs the full response. */
     const patch = useCallback(async (payload) => {
@@ -682,12 +693,18 @@ const Character_info = () => {
 
     // ── Spell actions ─────────────────────────────────────────────────────────
 
-    /** Toggles a spell in the prepared list; persists only spell names to the DB. */
+    /** Toggles a spell in the prepared list; always persists English spell names to the DB. */
     const toggleSpell = (spell) => {
-        const exists  = mySpells.some((s) => s.name === spell.name);
+        // Normalize to English spell object (spell may come from Ukrainian DB)
+        let enSpell = spellsDataEn.find((s) => s.name === spell.name);
+        if (!enSpell) {
+            const ukIdx = spellsDataUk.findIndex((s) => s.name === spell.name);
+            enSpell = (ukIdx >= 0 && ukIdx < spellsDataEn.length) ? spellsDataEn[ukIdx] : spell;
+        }
+        const exists  = mySpells.some((s) => s.name === enSpell.name);
         const updated = exists
-            ? mySpells.filter((s) => s.name !== spell.name)
-            : [...mySpells, spell];
+            ? mySpells.filter((s) => s.name !== enSpell.name)
+            : [...mySpells, enSpell];
         setMySpells(updated);
         updateField('my_spells', updated.map((s) => s.name));
     };
@@ -713,7 +730,13 @@ const Character_info = () => {
      * Non-cantrip tiers with zero slots and no spells are hidden entirely.
      */
     const renderSpellTier = (level) => {
-        const tierSpells = mySpells.filter((s) => s.level === level);
+        // mySpells stores English objects — map to current display language
+        const displaySpells = mySpells.map((enSpell) => {
+            if (language !== 'uk') return enSpell;
+            const idx = spellsDataEn.findIndex((s) => s.name === enSpell.name);
+            return (idx >= 0 && idx < spellsDataUk.length) ? spellsDataUk[idx] : enSpell;
+        });
+        const tierSpells = displaySpells.filter((s) => s.level === level);
         const slots      = spellSlots[level];
         const isCantrip  = level === 0;
 
@@ -1067,6 +1090,11 @@ const Character_info = () => {
                 initialLevelFilter={modalLevelFilter}
                 t={t}
                 currentSpellsData={activeSpellsDatabase}
+                toEnglishName={(name) => {
+                    if (spellsDataEn.some((s) => s.name === name)) return name;
+                    const ukIdx = spellsDataUk.findIndex((s) => s.name === name);
+                    return (ukIdx >= 0 && ukIdx < spellsDataEn.length) ? spellsDataEn[ukIdx].name : name;
+                }}
             />
 
             <Footer />
