@@ -21,7 +21,8 @@ const GameLobby       = lazy(() => import('./pages/Gamelobby.jsx'));
 const GameTable       = lazy(() => import('./pages/GameTable.jsx'));
 const WorldBuilder    = lazy(() => import('./pages/WorldBuilder'));
 const WorldEditor     = lazy(() => import('./pages/WorldEditor'));
-const WikiView        = lazy(() => import('./components/worldbuilder/WikiView'));
+const WikiView              = lazy(() => import('./components/worldbuilder/WikiView'));
+const MasterCharacterView   = lazy(() => import('./pages/MasterCharacterView.jsx'));
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#0d0d0d', color: '#ffc400' }}>
@@ -49,6 +50,7 @@ function App() {
 
               <Route path="/table"       element={<PrivateRoute><GameLobby /></PrivateRoute>} />
               <Route path="/table/:code" element={<PrivateRoute><GameTable /></PrivateRoute>} />
+              <Route path="/table/:code/character/:characterId" element={<PrivateRoute><MasterCharacterView /></PrivateRoute>} />
 
               <Route path="/worldbuilder"     element={<PrivateRoute><WorldBuilder /></PrivateRoute>} />
               <Route path="/worldbuilder/:id" element={<PrivateRoute><WorldEditor /></PrivateRoute>} />

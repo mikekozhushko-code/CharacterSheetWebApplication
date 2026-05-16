@@ -159,6 +159,24 @@ class SessionPlayersView(APIView):
         return Response(SessionPlayerSerializer(sp, context={'request': request}).data)
 
 
+class MasterCharacterView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, code, character_id):
+        session = get_object_or_404(GameSession, code=code)
+        if session.master != request.user:
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if not SessionPlayer.objects.filter(session=session, character_id=character_id).exists():
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        from characters.models import Character
+        from characters.serializers import CharacterSerializer
+        character = get_object_or_404(Character, id=character_id)
+        return Response({
+            'character': CharacterSerializer(character, context={'request': request}).data,
+            'permission': 'view',
+        })
+
+
 class MySessionsView(APIView):
     permission_classes = [IsAuthenticated]
 

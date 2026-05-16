@@ -684,13 +684,20 @@ const GameTable = () => {
                                             </div>
                                         )}
                                     </div>
-                                    {/* DM: Generate Token button */}
+                                    {/* DM: actions for players with a character */}
                                     {isMaster && p.character_id && (
-                                        <button
-                                            onClick={() => handleGenerateToken(p)}
-                                            title="Згенерувати токен"
-                                            style={genTokenBtnStyle}
-                                        >⬡</button>
+                                        <div style={{ display: 'flex', gap: '3px' }}>
+                                            <button
+                                                onClick={() => window.open(`/table/${code}/character/${p.character_id}`, '_blank')}
+                                                title="Переглянути лист персонажа"
+                                                style={genTokenBtnStyle}
+                                            >👁</button>
+                                            <button
+                                                onClick={() => handleGenerateToken(p)}
+                                                title="Згенерувати токен"
+                                                style={genTokenBtnStyle}
+                                            >⬡</button>
+                                        </div>
                                     )}
                                 </div>
                             );
