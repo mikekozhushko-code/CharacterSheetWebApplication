@@ -37,6 +37,16 @@ class JoinSessionView(APIView):
             session = GameSession.objects.get(code=code, is_active=True)
             session.players.add(request.user)
             SessionPlayer.objects.get_or_create(session=session, user=request.user)
+
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            all_players = SessionPlayer.objects.filter(session=session).select_related('user', 'character')
+            players_data = SessionPlayerSerializer(all_players, many=True, context={'request': request}).data
+            async_to_sync(get_channel_layer().group_send)(
+                f'table_{session.code}',
+                {'type': 'broadcast', 'message': {'type': 'players_update', 'payload': list(players_data)}},
+            )
+
             return Response(GameSessionSerializer(session).data)
         except GameSession.DoesNotExist:
             return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)

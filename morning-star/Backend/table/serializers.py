@@ -7,7 +7,9 @@ class SceneSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'tokens', 'map_image', 'order', 'is_visible']
 
 class SessionPlayerSerializer(serializers.ModelSerializer):
+    user_id          = serializers.IntegerField(source='user.id', read_only=True)
     username         = serializers.CharField(source='user.username', read_only=True)
+    character_id     = serializers.IntegerField(source='character.id', read_only=True, allow_null=True, default=None)
     character_name   = serializers.CharField(source='character.name', read_only=True, allow_null=True, default=None)
     character_avatar = serializers.SerializerMethodField()
     hp_current       = serializers.IntegerField(source='character.hp_current', read_only=True, allow_null=True, default=None)
@@ -15,7 +17,7 @@ class SessionPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = SessionPlayer
-        fields = ['id', 'user', 'username', 'character', 'character_name',
+        fields = ['id', 'user_id', 'username', 'character_id', 'character_name',
                   'character_avatar', 'hp_current', 'hp_max']
 
     def get_character_avatar(self, obj):

@@ -228,6 +228,13 @@ class TableConsumer(AsyncWebsocketConsumer):
                 'is_visible':      active.is_visible if active else False,
                 'tokens':          tokens,
                 'players':         players,
+                'grid': {
+                    'enabled': active.grid_enabled,
+                    'snap':    active.grid_snap,
+                    'size':    active.grid_size,
+                    'color':   active.grid_color,
+                    'type':    active.grid_type,
+                } if active else None,
             }
         except GameSession.DoesNotExist:
             return {'scenes': [], 'active_scene_id': None, 'tokens': [], 'players': []}
